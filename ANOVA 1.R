@@ -4,10 +4,25 @@ library(shinydashboard)
 library(ggplot2)
 library(dplyr)
 library(car)
+library(readxl)
+library(shinyWidgets)
 
 ui <- dashboardPage(
   skin = "blue",
-  dashboardHeader(title = "Aplikasi ANOVA"),
+  dashboardHeader(
+    title = span(""),
+    
+    tags$li(
+      class = "dropdown",
+      style = "padding: 8px 15px 0 0; margin-left: auto;",
+      tags$div(
+        style = "display: flex; align-items: center; gap: 10px; color: white;",
+  
+        tags$span("Aplikasi ANOVA", style = "font-weight: bold; font-size: 18px;"),
+        tags$img(src = "logo.png", height = "30px")
+      )
+    )
+  ),
   dashboardSidebar(
     sidebarMenu(id = "tabs",
                 br(), br(),
@@ -49,7 +64,6 @@ ui <- dashboardPage(
     }
   "))),
     tabItems(
-      
       tabItem("home", 
               div(
                 style = "text-align: center; padding: 30px;",
@@ -64,12 +78,33 @@ ui <- dashboardPage(
       tabItem("input",
               fluidRow(
                 box(title = "Upload dan Pilih Data", width = 4, fileInput("file1", "Upload CSV"),
-                    radioButtons("sep", "Pemisah", choices = c(",", ";", "\t")),
+                    radioButtons("dataSourceType", "Pilih Sumber Data",
+                                 choices = c("Upload Data" = "upload",
+                                             "Data Disediakan" = "builtin"),
+                                 selected = "upload"),
+                  
+                    conditionalPanel(
+                      condition = "input.dataSourceType == 'upload'",
+                      fileInput("file1", "Upload File (CSV/XLSX/XLS/TSV)"),
+                      radioButtons("sep", "Pemisah", 
+                                   choices = c("koma ," = ",", "titik koma ;" = ";", "tab \\t" = "\t"))
+                    ),
+                    
+                    conditionalPanel(
+                      condition = "input.dataSourceType == 'builtin'",
+                      selectInput("dataSource", "Pilih Dataset",
+                                  choices = c("iris", "PlantGrowth", "mtcars"))
+                    ),
+                    
                     sliderInput("alpha", "Taraf Signifikansi", 0.01, 0.1, 0.05, 0.01),
                     uiOutput("varSelect"),
                     uiOutput("groupSelect"),
-                    actionButton("submitData", "OK")),
-                box(title = "Preview Data", width = 8, tableOutput("dataPreview"))
+                    actionButton("submitData", "OK")
+                ),
+                
+                box(title = "Preview Data", width = 8,
+                    div(style = "overflow-x: auto;", tableOutput("dataPreview"))
+                )
               )
       ),
       tabItem("normal",
@@ -79,11 +114,12 @@ ui <- dashboardPage(
                 box(title = "Taraf Signifikansi", width = 6, textOutput("tarafNormal"))
               ),
               fluidRow(
-                tabBox(title = "Detail Uji Kenormalan", side = "left", width = 12,
-                       tabPanel("Hasil", verbatimTextOutput("hasilNormal")),
-                       tabPanel("Keputusan", verbatimTextOutput("keputusanNormal")),
-                       tabPanel("Kesimpulan", verbatimTextOutput("kesimpulanNormal"))
-                )
+                box(title = "Hasil", width = 12, verbatimTextOutput("hasilNormal")),
+                box(title = "Keputusan", width = 12, verbatimTextOutput("keputusanNormal")),
+                box(title = "Histogram per Kelompok", width = 12, plotOutput("plotNormal", height = "800px")),
+                box(title = "Q-Q Plot per Kelompok", width = 12, plotOutput("qqNormal")),
+                box(title = "Interpretasi Visual", width = 12, verbatimTextOutput("interpretasiNormal")),
+                box(title = "Kesimpulan", width = 12, verbatimTextOutput("kesimpulanNormal"))
               ),
               actionButton("toVarians", "Lanjut ke Uji Varians")
       ),
@@ -94,11 +130,9 @@ ui <- dashboardPage(
                 box(title = "Taraf Signifikansi", width = 6, textOutput("tarafVarians"))
               ),
               fluidRow(
-                tabBox(title = "Detail Uji Varians", side = "left", width = 12,
-                       tabPanel("Hasil", verbatimTextOutput("variansResult")),
-                       tabPanel("Keputusan", verbatimTextOutput("keputusanVarians")),
-                       tabPanel("Kesimpulan", verbatimTextOutput("kesimpulanVarians"))
-                )
+                box(title = "Hasil", width = 12, verbatimTextOutput("variansResult")),
+                box(title = "Keputusan", width = 12, verbatimTextOutput("keputusanVarians")),
+                box(title = "Kesimpulan", width = 12, verbatimTextOutput("kesimpulanVarians"))
               ),
               actionButton("toAnova", "Lanjut ke Uji ANOVA")
       ),
@@ -109,12 +143,10 @@ ui <- dashboardPage(
                 box(title = "Taraf Signifikansi", width = 6, textOutput("tarafAnova"))
               ),
               fluidRow(
-                tabBox(title = "Detail Uji ANOVA", side = "left", width = 12,
-                       tabPanel("Hasil ANOVA", verbatimTextOutput("anovaResult")),
-                       tabPanel("Boxplot", plotOutput("plotBox")),
-                       tabPanel("Keputusan", verbatimTextOutput("keputusanAnova")),
-                       tabPanel("Kesimpulan", verbatimTextOutput("kesimpulanAnova"))
-                )
+                box(title = "Hasil", width = 12, verbatimTextOutput("anovaResult")),
+                box(title = "Keputusan", width = 12, verbatimTextOutput("keputusanAnova")),
+                box(title = "Kesimpulan", width = 12, verbatimTextOutput("kesimpulanAnova")),
+                box(title = "Boxplot Antar Kelompok", width = 12, plotOutput("boxplotVarians"))
               ),
               conditionalPanel("output.anovaSig == true", actionButton("toTukey", "Lanjut ke Uji Tukey"))
       ),
@@ -125,11 +157,8 @@ ui <- dashboardPage(
                 box(title = "Taraf Signifikansi", width = 6, textOutput("tarafTukey"))
               ),
               fluidRow(
-                tabBox(title = "Detail Uji Tukey", side = "left", width = 12,
-                       tabPanel("Hasil", verbatimTextOutput("tukeyResult")),
-                       tabPanel("Keputusan", verbatimTextOutput("keputusanTukey")),
-                       tabPanel("Kesimpulan", verbatimTextOutput("kesimpulanTukey"))
-                )
+               box(title = "Hasil Uji Tukey", width = 12, verbatimTextOutput("tukeyResult")),
+                box(title = "Plot Hasil Tukey", width = 12, plotOutput("plotTukey"))
               )
       )
     )
@@ -138,112 +167,184 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
   dataInput <- reactiveVal()
-  hasilNormal <- reactiveVal(NULL)
-  hasilVarians <- reactiveVal(NULL)
-  hasilAnova <- reactiveVal(NULL)
-  hasilTukey <- reactiveVal(NULL)
-  keputusanNormal <- reactiveVal()
-  kesimpulanNormal <- reactiveVal()
-  keputusanVarians <- reactiveVal()
-  kesimpulanVarians <- reactiveVal()
-  keputusanAnova <- reactiveVal()
-  kesimpulanAnova <- reactiveVal()
-  keputusanTukey <- reactiveVal()
-  kesimpulanTukey <- reactiveVal()
+  hasilNormal <- reactiveVal()
+  hasilVarians <- reactiveVal()
+  hasilAnova <- reactiveVal()
+  
+  selectedNumericVar <- reactiveVal()
+  selectedGroupVar <- reactiveVal()
   
   observeEvent(input$file1, {
-    df <- read.csv(input$file1$datapath, sep = input$sep)
+    req(input$dataSourceType == "upload", input$file1, input$sep)
+    ext <- tools::file_ext(input$file1$name)
+    tryCatch({
+      df <- switch(ext,
+                   "csv" = read.csv(input$file1$datapath, sep = input$sep),
+                   "xls" = read_excel(input$file1$datapath),
+                   "xlsx" = read_excel(input$file1$datapath),
+                   "tsv" = read.delim(input$file1$datapath),
+                   stop("Format file tidak didukung.")
+      )
+      dataInput(as.data.frame(df))
+    }, error = function(e) {
+      showModal(modalDialog(
+        title = "Gagal Membaca File",
+        paste("Kesalahan:", e$message)
+      ))
+    })
+  })
+  
+  observeEvent(input$dataSource, {
+    req(input$dataSourceType == "builtin")
+    df <- switch(input$dataSource,
+                 "iris" = iris,
+                 "PlantGrowth" = PlantGrowth,
+                 "mtcars" = mtcars)
     dataInput(df)
   })
   
-  output$dataPreview <- renderTable({ head(dataInput(), 10) })
-  output$varSelect <- renderUI({ req(dataInput()); selectInput("numericVar", "Variabel Numerik", names(Filter(is.numeric, dataInput()))) })
-  output$groupSelect <- renderUI({ req(dataInput()); selectInput("groupVar", "Variabel Grup", names(dataInput())) })
-
-   observe({
-    req(input$dark_mode)
-    session$sendCustomMessage(
-      type = "toggleDark",
-      message = input$dark_mode == "dark"
-    )
+  output$dataPreview <- renderTable({ req(dataInput()); head(dataInput(), 10) })
+  
+  output$varSelect <- renderUI({
+    req(dataInput())
+    selectInput("numericVar", "Variabel Numerik", names(Filter(is.numeric, dataInput())))
   })
   
-  observeEvent(input$submitData, {
-    updateTabItems(session, "tabs", "normal")
+  output$groupSelect <- renderUI({
+    req(dataInput())
+    selectInput("groupVar", "Variabel Grup", names(dataInput()))
   })
   
-  output$tarafNormal <- renderText({ paste("\u03B1 =", input$alpha) })
-  output$tarafVarians <- renderText({ paste("\u03B1 =", input$alpha) })
-  output$tarafAnova <- renderText({ paste("\u03B1 =", input$alpha) })
-  output$tarafTukey <- renderText({ paste("\u03B1 =", input$alpha) })
+  observe({
+    if (input$dark_mode) {
+      session$sendCustomMessage(type = "toggleDark", message = TRUE)
+    } else {
+      session$sendCustomMessage(type = "toggleDark", message = FALSE)
+    }
+  })
   
-  output$plotBox <- renderPlot({
-    req(dataInput(), input$numericVar, input$groupVar)
-    ggplot(dataInput(), aes_string(x = input$groupVar, y = input$numericVar, fill = input$groupVar)) +
-      geom_boxplot() +
-      theme_minimal() +
-      labs(title = "Boxplot Berdasarkan Kelompok", x = input$groupVar, y = input$numericVar)
+  observeEvent(input$submitData, { 
+    selectedNumericVar(input$numericVar) 
+    selectedGroupVar(input$groupVar)
+    updateTabItems(session, "tabs", "normal") })
+  
+  output$tarafNormal <- renderText({ 
+    req(selectedNumericVar(), selectedGroupVar())
+    paste("\u03B1 =", input$alpha)
   })
   
   output$hasilNormal <- renderPrint({
-    req(dataInput(), input$numericVar, input$groupVar)
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
     df <- dataInput()
-    result <- lapply(split(df[[input$numericVar]], df[[input$groupVar]]), shapiro.test)
+    result <- lapply(split(df[[selectedNumericVar()]], df[[selectedGroupVar()]]), shapiro.test)
     hasilNormal(result)
-    res <- hasilNormal()
-    req(res)
-    for (group in names(res)) {
-      cat("Kelompok", group, 
-          ": Statistik =", round(res[[group]]$statistic, 7), 
-          ", p-value =", round(res[[group]]$p.value, 7), "\n---\n")
+    for (group in names(result)) {
+      cat("Kelompok", group, ": Statistik =", result[[group]]$statistic, ", p-value =", result[[group]]$p.value, "\n")
     }
   })
   
   output$keputusanNormal <- renderPrint({
-    res <- hasilNormal()
-    req(res)
-    for (group in names(res)) {
-      if (res[[group]]$p.value < input$alpha) {
-        cat("Kelompok", group, ": Tolak H0 (data tidak normal)\n")
-      } else {
-        cat("Kelompok", group, ": Terima H0 (data normal)\n")
-      }
+    req(hasilNormal())
+    for (group in names(hasilNormal())) {
+      pval <- hasilNormal()[[group]]$p.value
+      cat("Kelompok", group, ":",
+          ifelse(pval < input$alpha,
+                 paste("Tolak H0 karena p-value =", signif(pval, 5), "< α =", input$alpha),
+                 paste("Terima H0 karena p-value =", signif(pval, 5), "≥ α =", input$alpha)),
+          "\n")
     }
   })
   
   output$kesimpulanNormal <- renderPrint({
-    res <- hasilNormal()
-    req(res)
-    if (all(sapply(res, function(x) x$p.value > input$alpha))) {
-      cat("Kesimpulan: Semua kelompok berdistribusi normal.")
+    req(hasilNormal())
+    if (all(sapply(hasilNormal(), function(x) x$p.value > input$alpha))) {
+      cat("Kesimpulan: Data berdistribusi normal.")
     } else {
-      cat("Kesimpulan: Ada kelompok yang tidak berdistribusi normal.")
+      cat("Kesimpulan: Data tidak berdistribusi normal.")
     }
   })
   
-  output$variansResult <- renderPrint({
-    req(dataInput(), input$numericVar, input$groupVar)
+  output$plotNormal <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
     df <- dataInput()
-    result <- leveneTest(as.formula(paste(input$numericVar, "~", input$groupVar)), data = df)
+    
+    # Histogram per kategori (facet)
+    p1 <- ggplot(df, aes_string(x = selectedNumericVar())) +
+      geom_histogram(color = "black", fill = "skyblue", bins = 20) +
+      facet_wrap(as.formula(paste("~", selectedGroupVar())), ncol = 2, scales = "free_y") +
+      theme_minimal() +
+      labs(
+        title = "Histogram per Kelompok",
+        y = "Frekuensi",
+        x = selectedNumericVar()
+      )
+    
+    # Histogram seluruh data
+    p2 <- ggplot(df, aes_string(x = selectedNumericVar())) +
+      geom_histogram(color = "black", fill = "salmon", bins = 20) +
+      theme_minimal() +
+      labs(
+        title = "Histogram Seluruh Data",
+        y = "Frekuensi",
+        x = selectedNumericVar()
+      )
+    
+    # Gabungkan keduanya
+    gridExtra::grid.arrange(p1, p2, ncol = 1)
+  })
+  
+  output$qqNormal <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    
+    ggplot(df, aes_string(sample = selectedNumericVar())) +
+      stat_qq() + stat_qq_line() +
+      facet_wrap(as.formula(paste("~", selectedGroupVar()))) +
+      theme_minimal() +
+      labs(title = "Q-Q Plot per Kelompok")
+  })
+  
+  output$interpretasiNormal <- renderPrint({
+    req(hasilNormal())
+    for (group in names(hasilNormal())) {
+      pval <- hasilNormal()[[group]]$p.value
+      cat("Kelompok", group, ":\n")
+      if (pval > input$alpha) {
+        cat("- P-value >", input$alpha, ": Data berdistribusi normal\n")
+        cat("- Histogram dan Q-Q Plot seharusnya menunjukkan simetris & mengikuti garis diagonal\n")
+      } else {
+        cat("- P-value <", input$alpha, ": Data tidak berdistribusi normal\n")
+        cat("- Histogram tidak simetris atau Q-Q Plot menyimpang dari garis normal\n")
+      }
+      cat("\n")
+    }
+  })
+  
+  observeEvent(input$toVarians, { updateTabItems(session, "tabs", "varians") })
+  
+  output$tarafVarians <- renderText({ paste("\u03B1 =", input$alpha) })
+  
+  output$variansResult <- renderPrint({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    result <- leveneTest(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
     hasilVarians(result)
     print(result)
   })
   
   output$keputusanVarians <- renderPrint({
-    res <- hasilVarians()
-    req(res)
-    pval <- res[["Pr(>F)"]][1]
+    req(hasilVarians())
+    pval <- as.numeric(hasilVarians()[["Pr(>F)"]][1])
     if (pval < input$alpha) {
-      cat("Keputusan: Tolak H0 (varians tidak homogen)")
+      cat("Keputusan: Tolak H0 karena varians tidak homogen.\n")
     } else {
-      cat("Keputusan: Terima H0 (varians homogen)")
+      cat("Keputusan: Terima H0 karena varians homogen.\n")
     }
   })
   
   output$kesimpulanVarians <- renderPrint({
-    res <- hasilVarians()
-    req(res)
-    pval <- res[["Pr(>F)"]][1]
+    req(hasilVarians())
+    pval <- as.numeric(hasilVarians()[["Pr(>F)"]][1])
     if (pval < input$alpha) {
       cat("Kesimpulan: Varians antar kelompok tidak homogen.")
     } else {
@@ -251,107 +352,119 @@ server <- function(input, output, session) {
     }
   })
   
+  observeEvent(input$toAnova, { updateTabItems(session, "tabs", "anova") })
+  
+  output$tarafAnova <- renderText({ paste("\u03B1 =", input$alpha) })
+  
   output$anovaResult <- renderPrint({
-    req(dataInput(), input$numericVar, input$groupVar)
-    df <- dataInput()
-    model <- aov(as.formula(paste(input$numericVar, "~", input$groupVar)), data = df)
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- na.omit(dataInput())
+    model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
     hasil <- summary(model)
-    hasilAnova(hasil)
+    hasilAnova(hasil)  # simpan ke reactiveVal
     print(hasil)
   })
   
   output$keputusanAnova <- renderPrint({
-    res <- hasilAnova()
-    req(res)
-    pval <- res[[1]]$"Pr(>F)"[1]
-    if (pval < input$alpha) {
-      cat("Keputusan: Tolak H0 (terdapat perbedaan rata-rata)")
+    req(hasilAnova())
+    pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
+    
+    if (is.na(pval)) {
+      cat("Keputusan: Tidak dapat dihitung karena nilai p-value tidak tersedia (NA).")
+    } else if (pval < input$alpha) {
+      cat("Keputusan: Tolak H0 karena terdapat perbedaan rata-rata antar kelompok.")
     } else {
-      cat("Keputusan: Terima H0 (tidak terdapat perbedaan rata-rata)")
+      cat("Keputusan: Terima H0 karena tidak terdapat perbedaan rata-rata antar kelompok.")
     }
   })
   
   output$kesimpulanAnova <- renderPrint({
-    res <- hasilAnova()
-    req(res)
-    pval <- res[[1]]$"Pr(>F)"[1]
-    if (pval < input$alpha) {
+    req(hasilAnova())
+    pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
+    
+    if (is.na(pval)) {
+      cat("Kesimpulan: Tidak dapat disimpulkan karena nilai p-value tidak tersedia (NA).")
+    } else if (pval < input$alpha) {
       cat("Kesimpulan: Rata-rata antar kelompok berbeda secara signifikan.")
     } else {
       cat("Kesimpulan: Rata-rata antar kelompok tidak berbeda secara signifikan.")
     }
   })
   
-  output$tukeyResult <- renderPrint({
-    req(dataInput(), input$numericVar, input$groupVar)
-    df <- dataInput()
-    model <- aov(as.formula(paste(input$numericVar, "~", input$groupVar)), data = df)
-    hasil <- TukeyHSD(model)
-    hasilTukey(hasil)
-    print(hasil)
-  })
-  
-  output$keputusanTukey <- renderPrint({
-    res <- hasilTukey()
-    req(res)
-    # Ambil nama faktor (karena hasil TukeyHSD bisa punya banyak jika multi-way ANOVA)
-    faktor <- names(res)[1]
-    tukey_matrix <- res[[faktor]]  # matrix: rownames comparison, columns diff, lwr, upr, p ad
-    tukey_p <- tukey_matrix[, "p adj"]
-    signif <- tukey_p < input$alpha
-    
-    for (i in seq_along(signif)) {
-      cat(rownames(tukey_matrix)[i], ": ",
-          ifelse(signif[i], "Berbeda signifikan", "Tidak berbeda signifikan"), "\n")
-    }
-  })
-  
-  output$kesimpulanTukey <- renderPrint({
-    res <- hasilTukey()
-    req(res)
-    
-    faktor <- names(res)[1]
-    tukey_matrix <- res[[faktor]]
-    tukey_p <- tukey_matrix[, "p adj"]
-    
-    if (any(tukey_p < input$alpha)) {
-      cat("Kesimpulan: Terdapat pasangan kelompok yang berbeda secara signifikan.")
-    } else {
-      cat("Kesimpulan: Tidak ada pasangan kelompok yang berbeda secara signifikan.")
-    }
-  })
-  
   output$anovaSig <- reactive({
     res <- hasilAnova()
-    if (!is.null(res)) {
-      return(res[[1]]$"Pr(>F)"[1] < input$alpha)
-    }
+    if (!is.null(res)) return(res[[1]]$"Pr(>F)"[1] < input$alpha)
     FALSE
   })
   outputOptions(output, "anovaSig", suspendWhenHidden = FALSE)
   
-  observeEvent(input$toVarians, {
-    updateTabItems(session, "tabs", "varians")
+  output$boxplotVarians <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    ggplot(df, aes_string(x = selectedGroupVar(), y = selectedNumericVar())) +
+      geom_boxplot(aes(fill = .data[[selectedGroupVar()]]), color = "black") +
+      theme_minimal() +
+      labs(
+        title = "",
+        y = selectedNumericVar(),
+        x = selectedGroupVar()
+      )
   })
   
-  observeEvent(input$toAnova, {
-    updateTabItems(session, "tabs", "anova")
+  observeEvent(input$toTukey, { updateTabItems(session, "tabs", "tukey") })
+  
+  output$tarafTukey <- renderText({ paste("\u03B1 =", input$alpha) })
+  
+  output$tukeyResult <- renderPrint({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
+    tukey <- TukeyHSD(model)
+    
+    print(tukey[[selectedGroupVar()]])
   })
   
-  observeEvent(input$toTukey, {
-    updateTabItems(session, "tabs", "tukey")
+  output$plotTukey <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
+    plot(TukeyHSD(model))
   })
   
   output$statusBox <- renderUI({
     if (is.null(hasilNormal())) return()
     normColor <- if (all(sapply(hasilNormal(), function(x) x$p.value > input$alpha))) "green" else "red"
-    varColor <- if (!is.null(hasilVarians()) && hasilVarians() [["Pr(>F)"]][1] > input$alpha) "green" else "red"
-    anovaColor <- if (!is.null(hasilAnova()) && hasilAnova()[[1]]$"Pr(>F)"[1] < input$alpha) "green" else "red"
+    
+    varPval <- tryCatch({
+      as.numeric(hasilVarians()$"Pr(>F)"[1])
+    }, error = function(e) NA)
+    varColor <- if (!is.na(varPval) && varPval > input$alpha) "green" else "red"
+    
+    aovPval <- tryCatch({
+      hasilAnova()[[1]][["Pr(>F)"]][1]
+    }, error = function(e) NA)
+    aovColor <- if (!is.na(aovPval) && aovPval <= input$alpha) "red" else "green"
     
     tagList(
-      div(class = paste("status-box", normColor), ifelse(normColor == "green", "Data Berdistribusi Normal", "Data Tidak Berdistribusi Normal")),
-      div(class = paste("status-box", varColor), ifelse(varColor == "green", "Data Homogen", "Data Tidak Homogen")),
-      div(class = paste("status-box", anovaColor), ifelse(anovaColor == "green", "Rata-Rata Antar Kelompok Berbeda", "Rata-Rata Antar Kelompok Tidak Berbeda"))
+      tags$style(HTML("
+      .status-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+      .status-box {
+        flex: 1;
+        padding: 15px;
+        margin-right: 10px;
+        text-align: center;
+        font-weight: bold;
+        color: white;
+        border-radius: 10px;
+      }
+      .green { background-color: #28a745; }
+      .red { background-color: #dc3545; }
+    ")),
+      div(class = "status-row",
+          div(class = paste("status-box", normColor), "Normalitas: ", ifelse(normColor == "green", "Normal", "Tidak Normal")),
+          div(class = paste("status-box", varColor), "Homogenitas: ", ifelse(varColor == "green", "Homogen", "Tidak Homogen")),
+          div(class = paste("status-box", aovColor), "ANOVA: ", ifelse(aovColor == "green", "Tidak Berbeda", "Berbeda"))
+      )
     )
   })
 }
