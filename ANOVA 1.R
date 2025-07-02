@@ -159,11 +159,21 @@ ui <- dashboardPage(
               fluidRow(
                box(title = "Hasil Uji Tukey", width = 12, verbatimTextOutput("tukeyResult")),
                 box(title = "Plot Hasil Tukey", width = 12, plotOutput("plotTukey"))
+              ),
+              box(width = 12,
+                  div(style = "text-align: center;",
+                      div(style = "display: inline-block; margin-right: 20px;",
+                          actionButton("back_to_home", "Kembali ke Halaman Awal", class = "btn btn-primary",style = "color: white; font-weight: bold;")
+                      ),
+                      div(style = "display: inline-block;",
+                          actionButton("uji_data_lain", "Ayo Uji Data Lain", class = "btn btn-primary",style = "color: white; font-weight: bold;")
               )
+            )
+          )
+        )
       )
-    )
+   )
   )
-)
 
 server <- function(input, output, session) {
   dataInput <- reactiveVal()
@@ -430,7 +440,15 @@ server <- function(input, output, session) {
     model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
     plot(TukeyHSD(model))
   })
+
+  observeEvent(input$back_to_home, {
+    updateTabItems(session, "tabs", selected = "home")
+  })
   
+  observeEvent(input$uji_data_lain, {
+    updateTabItems(session, "tabs", selected = "input")  
+  })
+            
   output$statusBox <- renderUI({
     if (is.null(hasilNormal())) return()
     normColor <- if (all(sapply(hasilNormal(), function(x) x$p.value > input$alpha))) "green" else "red"
