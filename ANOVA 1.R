@@ -368,7 +368,10 @@ ui <- dashboardPage(
                 box(title = "Hasil", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("anovaResult")),
                 box(title = "Keputusan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("keputusanAnova")),
                 box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanAnova")),
-                box(title = "Boxplot Antar Kelompok", status = "primary", solidHeader = TRUE, width = 12, plotOutput("boxplotVarians"))
+                box(title = "Boxplot Antar Kelompok", status = "primary", solidHeader = TRUE, width = 12, plotOutput("boxplotVarians")),
+                box(title = "Unduh Hasil Uji ANOVA", status = "primary", solidHeader = TRUE, width = 12,
+                    downloadButton("downloadAnova", "Unduh Hasil ANOVA (.txt)", class = "btn btn-success")
+                )
               ),
               conditionalPanel("output.anovaSig == true", actionButton("toTukey", "Lanjut ke Uji Tukey"))
       ),
@@ -629,7 +632,38 @@ server <- function(input, output, session) {
       cat("Kesimpulan: Rata-rata antar kelompok tidak berbeda secara signifikan.")
     }
   })
-  
+            
+output$downloadAnova <- downloadHandler(
+    filename = function() {
+      paste0("Hasil_Uji_ANOVA_", Sys.Date(), ".txt")
+    },
+    content = function(file) {
+      req(hasilAnova())
+      hasil <- capture.output({
+        cat("Hasil Uji ANOVA:\n")
+        print(hasilAnova())
+        cat("\nKeputusan:\n")
+        pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
+        if (is.na(pval)) {
+          cat("Tidak dapat dihitung karena nilai p-value tidak tersedia (NA).\n")
+        } else if (pval < input$alpha) {
+          cat("Tolak H0 karena terdapat perbedaan rata-rata antar kelompok.\n")
+        } else {
+          cat("Terima H0 karena tidak terdapat perbedaan rata-rata antar kelompok.\n")
+        }
+        
+        cat("\nKesimpulan:\n")
+        if (is.na(pval)) {
+          cat("Tidak dapat disimpulkan karena nilai p-value tidak tersedia (NA).\n")
+        } else if (pval < input$alpha) {
+          cat("Rata-rata antar kelompok berbeda secara signifikan.\n")
+        } else {
+          cat("Rata-rata antar kelompok tidak berbeda secara signifikan.\n")
+        }
+      })
+      writeLines(hasil, con = file)
+    }
+  )            
   output$anovaSig <- reactive({
     res <- hasilAnova()
     if (!is.null(res)) return(res[[1]]$"Pr(>F)"[1] < input$alpha)
