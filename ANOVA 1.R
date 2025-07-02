@@ -43,7 +43,10 @@ ui <- dashboardPage(
     )
   ),
  dashboardBody(
-    tags$head(tags$style(HTML("
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "dark-theme.css"),
+      
+      tags$style(HTML("
 .content-wrapper, .right-side {
     background-image: url('motif.jpg');
     background-size: cover;
@@ -94,17 +97,154 @@ ui <- dashboardPage(
     ),         
    
     tabItems(
-      tabItem("home", 
-              div(
-                style = "text-align: center; padding: 30px;",
-                img(src = "stat.jpg", width = "60%", 
-                    style = "border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 20px;"),
-                h2("SELAMAT DATANG DI APLIKASI ANOVA!", 
-                   style = "font-weight: bold; color: #2c3e50;"),
-                p("Aplikasi ini membantu Anda melakukan analisis ANOVA satu arah secara interaktif.", 
-                  style = "font-size: 16px; color: #555; margin-top: 10px;")
+      br(), hr(), br(),
+                
+                # Apa itu ANOVA
+                h3("📌 Apa itu ANOVA Satu Arah?"),
+                p("ANOVA satu arah (Analysis of Variance) adalah metode statistik untuk menguji apakah terdapat perbedaan yang signifikan antara rata-rata tiga kelompok atau lebih. ANOVA memungkinkan kita menghindari pengujian berulang menggunakan uji t dan mengontrol kesalahan tipe I."),
+                
+                br(),
+                
+                # Rumus ANOVA
+                h3("📈 Uji ANOVA Satu Arah (One-Way ANOVA)"),
+                p("Digunakan untuk mengecek apakah terdapat perbedaan rata-rata antara tiga kelompok atau lebih."),
+                h4("📊 Tabel ANOVA"),
+                div(style = "text-align: center;",
+                    p("$$F = \\frac{MS_{\\text{Between}}}{MS_{\\text{Within}}} = \\frac{\\frac{SS_{\\text{Between}}}{k - 1}}{\\frac{SS_{\\text{Within}}}{N - k}}$$")
+                ),
+                tags$table(
+                  border = 1, 
+                  cellpadding = "6", 
+                  style = "margin: auto; font-size: 15px; background-color: white; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.2);",
+                  
+                  tags$tr(
+                    style = "background-color: #007bff; color: white; font-weight: bold;",
+                    tags$th("Sumber Variasi", style = "padding: 8px 12px;"),
+                    tags$th("df", style = "padding: 8px 12px;"),
+                    tags$th("SS", style = "padding: 8px 12px;"),
+                    tags$th("MS", style = "padding: 8px 12px;"),
+                    tags$th("F Hitung", style = "padding: 8px 12px;")
+                  ),
+                  
+                  tags$tr(
+                    tags$td("Antar Grup (Between)", style = "padding: 8px 12px;"),
+                    tags$td("k−1", style = "padding: 8px 12px;"),
+                    tags$td("SS_Between", style = "padding: 8px 12px;"),
+                    tags$td("MS_Between = SS_Between / (k−1)", style = "padding: 8px 12px;"),
+                    tags$td("F = MS_Between / MS_Within", style = "padding: 8px 12px;")
+                  ),
+                  tags$tr(
+                    tags$td("Dalam Grup (Within)", style = "padding: 8px 12px;"),
+                    tags$td("N−k", style = "padding: 8px 12px;"),
+                    tags$td("SS_Within", style = "padding: 8px 12px;"),
+                    tags$td("MS_Within = SS_Within / (N−k)", style = "padding: 8px 12px;"),
+                    tags$td("", style = "padding: 8px 12px;")
+                  ),
+                  tags$tr(
+                    tags$td("Total", style = "padding: 8px 12px;"),
+                    tags$td("N−1", style = "padding: 8px 12px;"),
+                    tags$td("SS_Total", style = "padding: 8px 12px;"),
+                    tags$td("", style = "padding: 8px 12px;"),
+                    tags$td("", style = "padding: 8px 12px;")
+                  )
+                ),
+                tags$p(strong("✅ Interpretasi:")),
+                tags$ul(
+                  tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Rata-rata kelompok sama."),
+                  tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Terdapat perbedaan signifikan antar kelompok.")
+                ),
+                
+                br(), hr(), br(),
+                
+                # Mengapa ANOVA
+                h3("🤔 Mengapa Menggunakan ANOVA?"),
+                tags$ul(
+                  tags$li("✔ Menghindari uji t berulang-ulang antar pasangan grup."),
+                  tags$li("✔ Mengontrol kesalahan tipe I yang meningkat saat melakukan banyak pengujian."),
+                  tags$li("✔ Menyediakan analisis menyeluruh terhadap data multikelompok.")
+                ),
+                
+                br(),
+                
+                # Asumsi Dasar ANOVA
+                h3("⚠ Asumsi Dasar ANOVA"),
+                p("Sebelum melakukan uji ANOVA, ada dua asumsi penting yang perlu diuji terlebih dahulu, yaitu kenormalan dan homogenitas varians."),
+                
+                # Shapiro-Wilk Test
+                h4("1️⃣ Uji Kenormalan (Shapiro-Wilk)"),
+                p("Digunakan untuk mengecek apakah data berdistribusi normal."),
+                div(style = "text-align: center;",
+                    p("$$W = \\frac{\\left(\\sum_{i=1}^{n/2} a_i x_i \\right)^2}{\\sum_{i=1}^{n} (x_i - \\bar{x})^2}$$")
+                ),
+                tags$ul(
+                  tags$li("\\(x_i\\): data yang diurutkan"),
+                  tags$li("\\(\\bar{x}\\): rata-rata data"),
+                  tags$li("\\(a_i\\): konstanta berdasarkan kovarians normal"),
+                  tags$li("Nilai \\(W\\) mendekati 1 → distribusi mendekati normal")
+                ),
+                tags$p(strong("✅ Interpretasi:")),
+                tags$ul(
+                  tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Data berdistribusi normal."),
+                  tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Data tidak berdistribusi normal.")
+                ),
+                
+                br(),
+                
+                # Levene's Test
+                h4("2️⃣ Uji Homogenitas Varians (Levene's Test)"),
+                p("Digunakan untuk mengecek apakah variansi antar grup adalah homogen."),
+                div(style = "text-align: center;",
+                    p("$$W = \\frac{(N - k)}{(k - 1)} \\cdot \\frac{\\sum_{i=1}^{k} n_i (Z_{i\\cdot} - Z_{\\cdot\\cdot})^2}{\\sum_{i=1}^{k} \\sum_{j=1}^{n_i} (Z_{ij} - Z_{i\\cdot})^2}$$")
+                ),
+                tags$ul(
+                  tags$li("\\(Z_{ij} = |Y_{ij} - \\tilde{Y}_i|\\): selisih absolut antara data ke-\\(j\\) pada grup ke-\\(i\\) dengan median grup"),
+                  tags$li("\\(Z_{i\\cdot}\\): rata-rata nilai \\(Z\\) pada grup ke-\\(i\\)"),
+                  tags$li("\\(Z_{\\cdot\\cdot}\\): rata-rata keseluruhan nilai \\(Z\\)"),
+                  tags$li("\\(N\\): total sampel, \\(k\\): jumlah grup")
+                ),
+                tags$p(strong("✅ Interpretasi:")),
+                tags$ul(
+                  tags$li("Gagal Tolak \\(H_0\\): \\(p \\geq 0.05\\) → Varians homogen."),
+                  tags$li("Tolak \\(H_0\\): \\(p < 0.05\\) → Varians tidak homogen.")
+                ),
+                
+                br(), hr(), br(),
+                
+                # Tukey
+                h3("🔍 Uji Lanjutan Tukey HSD (Post-hoc)"),
+                p("Jika hasil ANOVA signifikan, maka uji Tukey dilakukan untuk mengetahui pasangan grup mana yang berbeda signifikan."),
+                div(style = "text-align: center;",
+                    p("$$HSD = q_{(a, k, df_{\\text{within}})} \\cdot \\sqrt{\\frac{MS_{\\text{within}}}{n}}$$")
+                ),
+                tags$ul(
+                  tags$li("\\(q_{(a, k, df_{\\text{within}})}\\): nilai kritis dari distribusi studentized range"),
+                  tags$li("\\(MS_{\\text{within}}\\): galat kuadrat rata-rata dalam grup (dari ANOVA)"),
+                  tags$li("\\(n\\): jumlah pengamatan per grup (jika data seimbang)")
+                ),
+                tags$p(strong("✅ Interpretasi:")),
+                tags$ul(
+                  tags$li("Gagal Tolak \\(H_0\\): \\(p \\geq 0.05\\) → Rata-rata antar kelompok tidak berbeda signifikan."),
+                  tags$li("Tolak \\(H_0\\): \\(p < 0.05\\) → Rata-rata antar kelompok berbeda signifikan.")
+                ),
+                
+                # Cara Menggunakan
+                h3("🛠️ Cara Menggunakan Aplikasi Ini"),
+                tags$ol(
+                  tags$li("Buka tab 'Input Data' untuk unggah file CSV/XLSX atau gunakan data contoh."),
+                  tags$li("Pilih variabel numerik dan kategori, lalu klik tombol OK."),
+                  tags$li("Gunakan tab 'Uji Kenormalan' untuk menjalankan Shapiro-Wilk."),
+                  tags$li("Gunakan tab 'Uji Homogenitas' untuk menjalankan Levene’s Test."),
+                  tags$li("Masuk ke tab 'ANOVA' untuk melihat hasil pengujian F."),
+                  tags$li("Jika signifikan, buka tab 'Tukey' untuk melihat pasangan grup yang berbeda.")
+                ),
+                
+                br(), hr(), br(),
+                
+                # Penutup
+                div(style = "text-align: center; font-size: 14px; color: black;",
+                    "Aplikasi ini dikembangkan dengan semangat belajar statistik dan cinta terhadap data. 💙")
               )
-  ),
+      ),
       tabItem("input",
               fluidRow(
                 box(title = "Upload dan Pilih Data", status = "primary", solidHeader = TRUE, width = 4, fileInput("file1", "Upload CSV"),
@@ -230,7 +370,7 @@ server <- function(input, output, session) {
   hasilNormal <- reactiveVal()
   hasilVarians <- reactiveVal()
   hasilAnova <- reactiveVal()
-  hasilTukey <- reactiveVal()
+  
   selectedNumericVar <- reactiveVal()
   selectedGroupVar <- reactiveVal()
   
@@ -348,8 +488,7 @@ server <- function(input, output, session) {
         y = "Frekuensi",
         x = selectedNumericVar()
       )
-    
-    # Gabungkan keduanya
+  
     gridExtra::grid.arrange(p1, p2, ncol = 1)
   })
   
