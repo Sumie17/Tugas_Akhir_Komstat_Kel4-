@@ -17,8 +17,7 @@ ui <- dashboardPage(
       tags$div(
         style = "display: flex; align-items: center; gap: 10px; color: white;",
   
-        tags$span("Aplikasi ANOVA", style = "font-weight: bold; font-size: 18px;"),
-        tags$img(src = "logo.png", height = "30px")
+        tags$span("Aplikasi ANOVA", style = "font-weight: bold; font-size: 18px;")
       )
     )
   ),
@@ -47,65 +46,57 @@ ui <- dashboardPage(
       tags$link(rel = "stylesheet", type = "text/css", href = "dark-theme.css"),
       
       tags$style(HTML("
-.content-wrapper, .right-side {
-    background-image: url('motif.jpg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: top center;
-  }
-.box {
-    background-color: rgba(255, 255, 255, 0.85) !important;
-  }
-.content {
-    background-color: transparent !important;
-  }
-.skin-blue .main-sidebar {
-    background-color: #1e2b38 !important;
-    color: white !important;
-  }
-  .skin-blue .main-sidebar .sidebar a {
-    color: white !important;
-  }
-  .skin-blue .main-sidebar .sidebar-menu > li > a {
-    color: white !important;
-    font-weight: 500;
-  }
-  .skin-blue .main-sidebar .sidebar-menu > li.active > a {
-    background-color: #007bff !important;
-    color: white !important;
-  }
-  .main-sidebar .radio label {
-    color: white !important;
-  }
-  .main-sidebar h4, .main-sidebar h3, .main-sidebar h2, .main-sidebar h1,
-  .main-sidebar p {
-    color: white !important;
-  }
-  color: black !important;
-  }
-")),
-      tags$script(HTML("
-      Shiny.addCustomMessageHandler('toggleDark', function(message) {
-        if (message) {
-          document.body.classList.add('dark-mode');
-        } else {
-          document.body.classList.remove('dark-mode');
+      body, .content-wrapper, .right-side {
+          background-image: url('motif.jpg');
+          background-size: cover;
+          background-repeat: no-repeat;
+          background-attachment: fixed;
+          background-position: top center;
         }
-      });
-    "))
-    ),         
+
+        .skin-blue .main-header, .skin-blue .main-sidebar {
+          background-color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        .box {
+          background-color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+      tab-home .content {
+          background-color: transparent !important;
+        }
+
+        body:not(.dark-mode) .skin-blue .main-sidebar .sidebar a {
+          color: #222 !important;
+        }
+
+        body:not(.dark-mode) .skin-blue .main-sidebar .sidebar-menu > li > a {
+          color: #222 !important;
+          font-weight: 500;
+        }
+
+        .skin-blue .main-sidebar .sidebar-menu > li.active > a {
+          background-color: #007bff !important;
+          color: white !important;
+        }
+      ")),
+      tags$script(HTML("
+        Shiny.addCustomMessageHandler('toggleDark', function(message) {
+          if (message) {
+            document.body.classList.add('dark-mode');
+          } else {
+            document.body.classList.remove('dark-mode');
+          }
+        });
+      "))
+      ),         
    
     tabItems(
       br(), hr(), br(),
-                
-                # Apa itu ANOVA
                 h3("📌 Apa itu ANOVA Satu Arah?"),
                 p("ANOVA satu arah (Analysis of Variance) adalah metode statistik untuk menguji apakah terdapat perbedaan yang signifikan antara rata-rata tiga kelompok atau lebih. ANOVA memungkinkan kita menghindari pengujian berulang menggunakan uji t dan mengontrol kesalahan tipe I."),
-                
                 br(),
                 
-                # Rumus ANOVA
                 h3("📈 Uji ANOVA Satu Arah (One-Way ANOVA)"),
                 p("Digunakan untuk mengecek apakah terdapat perbedaan rata-rata antara tiga kelompok atau lebih."),
                 h4("📊 Tabel ANOVA"),
@@ -153,24 +144,24 @@ ui <- dashboardPage(
                   tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Rata-rata kelompok sama."),
                   tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Terdapat perbedaan signifikan antar kelompok.")
                 ),
-                
+                tags$p(strong("✅ Interpretasi:")),
+                tags$ul(
+                  tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Rata-rata kelompok sama."),
+                  tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Terdapat perbedaan signifikan antar kelompok.")
+                ),
                 br(), hr(), br(),
                 
-                # Mengapa ANOVA
                 h3("🤔 Mengapa Menggunakan ANOVA?"),
                 tags$ul(
                   tags$li("✔ Menghindari uji t berulang-ulang antar pasangan grup."),
                   tags$li("✔ Mengontrol kesalahan tipe I yang meningkat saat melakukan banyak pengujian."),
                   tags$li("✔ Menyediakan analisis menyeluruh terhadap data multikelompok.")
                 ),
-                
                 br(),
                 
-                # Asumsi Dasar ANOVA
                 h3("⚠ Asumsi Dasar ANOVA"),
                 p("Sebelum melakukan uji ANOVA, ada dua asumsi penting yang perlu diuji terlebih dahulu, yaitu kenormalan dan homogenitas varians."),
                 
-                # Shapiro-Wilk Test
                 h4("1️⃣ Uji Kenormalan (Shapiro-Wilk)"),
                 p("Digunakan untuk mengecek apakah data berdistribusi normal."),
                 div(style = "text-align: center;",
@@ -187,10 +178,8 @@ ui <- dashboardPage(
                   tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Data berdistribusi normal."),
                   tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Data tidak berdistribusi normal.")
                 ),
-                
                 br(),
                 
-                # Levene's Test
                 h4("2️⃣ Uji Homogenitas Varians (Levene's Test)"),
                 p("Digunakan untuk mengecek apakah variansi antar grup adalah homogen."),
                 div(style = "text-align: center;",
@@ -207,10 +196,8 @@ ui <- dashboardPage(
                   tags$li("Gagal Tolak \\(H_0\\): \\(p \\geq 0.05\\) → Varians homogen."),
                   tags$li("Tolak \\(H_0\\): \\(p < 0.05\\) → Varians tidak homogen.")
                 ),
-                
                 br(), hr(), br(),
                 
-                # Tukey
                 h3("🔍 Uji Lanjutan Tukey HSD (Post-hoc)"),
                 p("Jika hasil ANOVA signifikan, maka uji Tukey dilakukan untuk mengetahui pasangan grup mana yang berbeda signifikan."),
                 div(style = "text-align: center;",
@@ -227,7 +214,6 @@ ui <- dashboardPage(
                   tags$li("Tolak \\(H_0\\): \\(p < 0.05\\) → Rata-rata antar kelompok berbeda signifikan.")
                 ),
                 
-                # Cara Menggunakan
                 h3("🛠️ Cara Menggunakan Aplikasi Ini"),
                 tags$ol(
                   tags$li("Buka tab 'Input Data' untuk unggah file CSV/XLSX atau gunakan data contoh."),
@@ -237,10 +223,8 @@ ui <- dashboardPage(
                   tags$li("Masuk ke tab 'ANOVA' untuk melihat hasil pengujian F."),
                   tags$li("Jika signifikan, buka tab 'Tukey' untuk melihat pasangan grup yang berbeda.")
                 ),
-                
                 br(), hr(), br(),
                 
-                # Penutup
                 div(style = "text-align: center; font-size: 14px; color: black;",
                     "Aplikasi ini dikembangkan dengan semangat belajar statistik dan cinta terhadap data. 💙")
               )
@@ -367,13 +351,12 @@ ui <- dashboardPage(
       )
    )
 )
-
 server <- function(input, output, session) {
   dataInput <- reactiveVal()
   hasilNormal <- reactiveVal()
   hasilVarians <- reactiveVal()
   hasilAnova <- reactiveVal()
-  
+  hasilTukey <- reactiveVal()
   selectedNumericVar <- reactiveVal()
   selectedGroupVar <- reactiveVal()
   
