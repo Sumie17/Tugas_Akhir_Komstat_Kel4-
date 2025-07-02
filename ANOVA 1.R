@@ -107,10 +107,10 @@ ui <- dashboardPage(
   ),
       tabItem("input",
               fluidRow(
-                box(title = "Upload dan Pilih Data", width = 4, fileInput("file1", "Upload CSV"),
+                box(title = "Upload dan Pilih Data", status = "primary", solidHeader = TRUE, width = 4, fileInput("file1", "Upload CSV"),
                     radioButtons("dataSourceType", "Pilih Sumber Data",
                                  choices = c("Upload Data" = "upload",
-                                             "Data Disediakan" = "builtin"),
+                                             "Dataset R" = "builtin"),
                                  selected = "upload"),
                   
                     conditionalPanel(
@@ -132,7 +132,7 @@ ui <- dashboardPage(
                     actionButton("submitData", "OK")
                 ),
                 
-                box(title = "Preview Data", width = 8,
+                box(title = "Preview Data", status = "primary", solidHeader = TRUE, width = 8,
                     div(style = "overflow-x: auto;", tableOutput("dataPreview"))
                 )
               )
@@ -140,55 +140,75 @@ ui <- dashboardPage(
       tabItem("normal",
               uiOutput("statusBox"),
               fluidRow(
-                box(title = "Hipotesis Uji Kenormalan", width = 6, img(src = "shapiro.png", width = "100%")),
-                box(title = "Taraf Signifikansi", width = 6, textOutput("tarafNormal"))
+                box(title = "Hipotesis Uji Kenormalan", status = "primary", solidHeader = TRUE width = 6, 
+                withMathJax("$$
+                \\begin{aligned}
+                H_0 &: X \\sim \\mathcal{N}(\\mu, \\sigma^2) \\\\
+                H_1 &: X \\not\\sim \\mathcal{N}(\\mu, \\sigma^2)
+                \\end{aligned}
+                $$")),
+                box(title = "Taraf Signifikansi", status = "primary", solidHeader = TRUE, width = 6, textOutput("tarafNormal"))
               ),
               fluidRow(
-                box(title = "Hasil", width = 12, verbatimTextOutput("hasilNormal")),
-                box(title = "Keputusan", width = 12, verbatimTextOutput("keputusanNormal")),
-                box(title = "Histogram per Kelompok", width = 12, plotOutput("plotNormal", height = "800px")),
-                box(title = "Q-Q Plot per Kelompok", width = 12, plotOutput("qqNormal")),
-                box(title = "Interpretasi Visual", width = 12, verbatimTextOutput("interpretasiNormal")),
-                box(title = "Kesimpulan", width = 12, verbatimTextOutput("kesimpulanNormal"))
+               box(title = "Hasil", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("hasilNormal")),
+                box(title = "Keputusan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("keputusanNormal")),
+                box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanNormal")),
+                box(title = "Histogram", status = "primary", solidHeader = TRUE, width = 12, plotOutput("plotNormal", height = "800px")),
+                box(title = "Q-Q Plot per Kelompok", status = "primary", solidHeader = TRUE, width = 12, plotOutput("qqNormal")),
+                box(title = "Interpretasi Visual", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("interpretasiNormal"))
               ),
               actionButton("toVarians", "Lanjut ke Uji Varians")
       ),
       tabItem("varians",
               uiOutput("statusBox"),
               fluidRow(
-                box(title = "Hipotesis Uji Kesamaan Varians", width = 6, img(src = "levene.png", width = "100%")),
-                box(title = "Taraf Signifikansi", width = 6, textOutput("tarafVarians"))
+                box( title = "Hipotesis Uji Homogenitas", status = "primary", solidHeader = TRUE, width = 6,
+                withMathJax("$$
+                H_0 : \\sigma^2_1 = \\sigma^2_2 = \\cdots = \\sigma^2_k \\\\
+                H_1 : \\sigma^2_i \\ne \\sigma^2_j, \\forall i \\ne j; \\ i,j = 1,2,3,...,k
+                $$")),
+                box(title = "Taraf Signifikansi", status = "primary", solidHeader = TRUE, width = 6, textOutput("tarafVarians"))
               ),
               fluidRow(
-                box(title = "Hasil", width = 12, verbatimTextOutput("variansResult")),
-                box(title = "Keputusan", width = 12, verbatimTextOutput("keputusanVarians")),
-                box(title = "Kesimpulan", width = 12, verbatimTextOutput("kesimpulanVarians"))
+                box(title = "Hasil", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("variansResult")),
+                box(title = "Keputusan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("keputusanVarians")),
+                box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanVarians"))
               ),
               actionButton("toAnova", "Lanjut ke Uji ANOVA")
       ),
       tabItem("anova",
               uiOutput("statusBox"),
               fluidRow(
-                box(title = "Hipotesis Uji ANOVA", width = 6, img(src = "anova.png", width = "100%")),
-                box(title = "Taraf Signifikansi", width = 6, textOutput("tarafAnova"))
+                box(title = "Hipotesis Uji ANOVA", status = "primary", solidHeader = TRUE, width = 6, 
+                withMathJax("$$
+                H_0: \\mu_1 = \\mu_2 = \\cdots = \\mu_k \\\\
+                H_1: \\mu_i \\ne \\mu_j, \\ \\forall i \\ne j;\\ i,j = 1,2,3,...,k \\\\ 
+                $$")),
+                box(title = "Taraf Signifikansi", status = "primary", solidHeader = TRUE, width = 6, textOutput("tarafAnova"))
               ),
               fluidRow(
-                box(title = "Hasil", width = 12, verbatimTextOutput("anovaResult")),
-                box(title = "Keputusan", width = 12, verbatimTextOutput("keputusanAnova")),
-                box(title = "Kesimpulan", width = 12, verbatimTextOutput("kesimpulanAnova")),
-                box(title = "Boxplot Antar Kelompok", width = 12, plotOutput("boxplotVarians"))
+                box(title = "Hasil", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("anovaResult")),
+                box(title = "Keputusan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("keputusanAnova")),
+                box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanAnova")),
+                box(title = "Boxplot Antar Kelompok", status = "primary", solidHeader = TRUE, width = 12, plotOutput("boxplotVarians"))
               ),
               conditionalPanel("output.anovaSig == true", actionButton("toTukey", "Lanjut ke Uji Tukey"))
       ),
       tabItem("tukey",
               uiOutput("statusBox"),
               fluidRow(
-                box(title = "Hipotesis Uji Tukey", width = 6, img(src = "tukey.png", width = "100%")),
-                box(title = "Taraf Signifikansi", width = 6, textOutput("tarafTukey"))
+                box(title = "Hipotesis Uji Tukey", status = "primary", solidHeader = TRUE, width = 6, 
+                withMathJax("$$
+                H_0 : \\mu_i = \\mu_j \\\\
+                H_1 : \\mu_i \\ne \\mu_j
+                $$")),
+                box(title = "Taraf Signifikansi", status = "primary", solidHeader = TRUE, width = 6, textOutput("tarafTukey"))
               ),
               fluidRow(
-               box(title = "Hasil Uji Tukey", width = 12, verbatimTextOutput("tukeyResult")),
-                box(title = "Plot Hasil Tukey", width = 12, plotOutput("plotTukey"))
+                box(title = "Hasil", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("tukeyResult")),
+                box(title = "Keputusan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("keputusanTukey")),
+                box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanTukey")),
+                box(title = "Plot", status = "primary", solidHeader = TRUE, width = 12, plotOutput("plotTukey"))
               ),
               box(width = 12,
                   div(style = "text-align: center;",
@@ -197,20 +217,20 @@ ui <- dashboardPage(
                       ),
                       div(style = "display: inline-block;",
                           actionButton("uji_data_lain", "Ayo Uji Data Lain", class = "btn btn-primary",style = "color: white; font-weight: bold;")
-              )
+                      )
             )
           )
         )
       )
    )
-  )
+)
 
 server <- function(input, output, session) {
   dataInput <- reactiveVal()
   hasilNormal <- reactiveVal()
   hasilVarians <- reactiveVal()
   hasilAnova <- reactiveVal()
-  
+  hasilTukey <- reactiveVal()
   selectedNumericVar <- reactiveVal()
   selectedGroupVar <- reactiveVal()
   
@@ -255,12 +275,12 @@ server <- function(input, output, session) {
     selectInput("groupVar", "Variabel Grup", names(dataInput()))
   })
   
-  observe({
-    if (input$dark_mode) {
-      session$sendCustomMessage(type = "toggleDark", message = TRUE)
-    } else {
-      session$sendCustomMessage(type = "toggleDark", message = FALSE)
-    }
+    observe({
+    req(input$dark_mode)
+    session$sendCustomMessage(
+      type = "toggleDark",
+      message = input$dark_mode == "dark"
+    )
   })
   
   observeEvent(input$submitData, { 
@@ -452,7 +472,6 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$toTukey, { updateTabItems(session, "tabs", "tukey") })
-  
   output$tarafTukey <- renderText({ paste("\u03B1 =", input$alpha) })
   
   output$tukeyResult <- renderPrint({
@@ -461,7 +480,47 @@ server <- function(input, output, session) {
     model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
     tukey <- TukeyHSD(model)
     
+    hasilTukey(tukey[[selectedGroupVar()]]) 
     print(tukey[[selectedGroupVar()]])
+  })
+  
+  output$keputusanTukey <- renderPrint({
+    req(hasilTukey())
+    tukey_df <- as.data.frame(hasilTukey())
+    for (i in seq_len(nrow(tukey_df))) {
+      pair <- rownames(tukey_df)[i]
+      pval <- tukey_df[i, "p adj"]
+      
+      cat("Pasangan", pair, ":\n")
+      
+      if (is.na(pval)) {
+        cat("- p-value tidak tersedia. Tidak dapat diambil keputusan.\n\n")
+      } else if (pval < input$alpha) {
+        cat("- p-value =", signif(pval, 5), "< α =", input$alpha, 
+            "→ Tolak H0 → Ada perbedaan signifikan\n\n")
+      } else {
+        cat("- p-value =", signif(pval, 5), "≥ α =", input$alpha, 
+            "→ Terima H0 → Tidak ada perbedaan signifikan\n\n")
+      }
+    }
+  })
+  
+  output$kesimpulanTukey <- renderPrint({
+    req(hasilTukey())
+    tukey_df <- as.data.frame(hasilTukey())
+    pvals <- tukey_df[["p adj"]]
+    
+    # Cek apakah ada p-value yang valid dan < alpha
+    if (!is.null(pvals) && any(!is.na(pvals) & pvals < input$alpha)) {
+      signif_rows <- rownames(tukey_df)[!is.na(pvals) & pvals < input$alpha]
+      
+      cat("Kesimpulan: Terdapat perbedaan signifikan antara pasangan kelompok berikut:\n")
+      for (pair in signif_rows) {
+        cat("-", pair, "\n")
+      }
+    } else {
+      cat("Kesimpulan: Tidak terdapat perbedaan signifikan antara pasangan kelompok manapun.")
+    }
   })
   
   output$plotTukey <- renderPlot({
@@ -491,7 +550,7 @@ server <- function(input, output, session) {
     aovPval <- tryCatch({
       hasilAnova()[[1]][["Pr(>F)"]][1]
     }, error = function(e) NA)
-    aovColor <- if (!is.na(aovPval) && aovPval <= input$alpha) "red" else "green"
+    aovColor <- if (!is.na(aovPval) && aovPval <= input$alpha) "green" else "green"
     
     tagList(
       tags$style(HTML("
@@ -511,7 +570,7 @@ server <- function(input, output, session) {
       div(class = "status-row",
           div(class = paste("status-box", normColor), "Normalitas: ", ifelse(normColor == "green", "Normal", "Tidak Normal")),
           div(class = paste("status-box", varColor), "Homogenitas: ", ifelse(varColor == "green", "Homogen", "Tidak Homogen")),
-          div(class = paste("status-box", aovColor), "ANOVA: ", ifelse(aovColor == "green", "Tidak Berbeda", "Berbeda"))
+          div(class = paste("status-box", aovColor), "ANOVA: ", ifelse(aovColor == "green", "Rata-Rata Kelompok Berbeda", "Rata-Rata Kelompok Tidak Berbeda"))
       )
     )
   })
