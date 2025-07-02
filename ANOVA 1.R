@@ -28,22 +28,26 @@ ui <- dashboardPage(
                 menuItem("Tukey", tabName = "tukey", icon = icon("list"))
     )
   ),
-  dashboardBody(
-    tags$head(tags$style(HTML(".status-box { display: inline-block; padding: 5px 10px; border-radius: 5px; margin-right: 5px; color: white; } .green { background-color: green; } .red { background-color: red; }"))),
-    tabItems(
-      tabItem("home",
-              tabItem("home", 
-                      div(
-                        style = "
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      height: 80vh; 
-      text-align: center;",
-                        h2("SELAMAT DATANG DI APLIKASI ANOVA!")
-                      )
-              )
-      ),
+ dashboardBody(
+    tags$head(tags$style(HTML("
+    .status-box { 
+      display: inline-block; 
+      padding: 5px 10px; 
+      border-radius: 5px; 
+      margin-right: 5px; 
+      color: white; 
+    } 
+    .green { background-color: green; } 
+    .red { background-color: red; }
+
+    /* Background dengan motif dari www/motif.jpg */
+    body, .content-wrapper {
+      background-image: url('motif.jpg');
+      background-color: #e0f7fa;
+      background-repeat: repeat;
+      background-size: auto;
+    }
+  "))),
       tabItem("input",
               fluidRow(
                 box(title = "Upload dan Pilih Data", width = 4, fileInput("file1", "Upload CSV"),
