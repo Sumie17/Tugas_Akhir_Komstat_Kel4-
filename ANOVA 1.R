@@ -1,4 +1,3 @@
-
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -45,24 +44,55 @@ ui <- dashboardPage(
   ),
  dashboardBody(
     tags$head(tags$style(HTML("
-    .status-box { 
-      display: inline-block; 
-      padding: 5px 10px; 
-      border-radius: 5px; 
-      margin-right: 5px; 
-      color: white; 
-    } 
-    .green { background-color: green; } 
-    .red { background-color: red; }
-
-    /* Background dengan motif dari www/motif.jpg */
-    body, .content-wrapper {
-      background-image: url('motif.jpg');
-      background-color: #e0f7fa;
-      background-repeat: repeat;
-      background-size: auto;
-    }
-  "))),
+.content-wrapper, .right-side {
+    background-image: url('motif.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: top center;
+  }
+.box {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+  }
+.content {
+    background-color: transparent !important;
+  }
+.skin-blue .main-sidebar {
+    background-color: #1e2b38 !important;
+    color: white !important;
+  }
+  .skin-blue .main-sidebar .sidebar a {
+    color: white !important;
+  }
+  .skin-blue .main-sidebar .sidebar-menu > li > a {
+    color: white !important;
+    font-weight: 500;
+  }
+  .skin-blue .main-sidebar .sidebar-menu > li.active > a {
+    background-color: #007bff !important;
+    color: white !important;
+  }
+  .main-sidebar .radio label {
+    color: white !important;
+  }
+  .main-sidebar h4, .main-sidebar h3, .main-sidebar h2, .main-sidebar h1,
+  .main-sidebar p {
+    color: white !important;
+  }
+  color: black !important;
+  }
+")),
+      tags$script(HTML("
+      Shiny.addCustomMessageHandler('toggleDark', function(message) {
+        if (message) {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+      });
+    "))
+    ),         
+   
     tabItems(
       tabItem("home", 
               div(
