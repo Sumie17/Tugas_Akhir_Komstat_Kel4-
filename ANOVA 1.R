@@ -332,6 +332,9 @@ ui <- dashboardPage(
                 box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanAnova")),
                 box(title = "Boxplot Antar Kelompok", status = "primary", solidHeader = TRUE, width = 12, plotOutput("boxplotVarians"))
               ),
+              br(),
+                downloadButton("downloadAnova", "Unduh Hasil ANOVA")
+              ), 
               conditionalPanel("output.anovaSig == true", actionButton("toTukey", "Lanjut ke Uji Tukey"))
       ),
       tabItem("tukey",
@@ -563,7 +566,15 @@ server <- function(input, output, session) {
     hasilAnova(hasil)  # simpan ke reactiveVal
     print(hasil)
   })
-  
+output$downloadAnova <- downloadHandler(
+    filename = function() {
+      "hasil_anova.txt"
+    },
+    content = function(file) {
+      req(hasilAnova())
+      writeLines(capture.output(hasilAnova()), file)
+    }
+  ) 
   output$keputusanAnova <- renderPrint({
     req(hasilAnova())
     pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
