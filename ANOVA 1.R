@@ -48,6 +48,19 @@ ui <- dashboardPage(
       background-size: auto;
     }
   "))),
+    tabItems(
+      
+      tabItem("home", 
+              div(
+                style = "text-align: center; padding: 30px;",
+                img(src = "stat.jpg", width = "60%", 
+                    style = "border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 20px;"),
+                h2("SELAMAT DATANG DI APLIKASI ANOVA!", 
+                   style = "font-weight: bold; color: #2c3e50;"),
+                p("Aplikasi ini membantu Anda melakukan analisis ANOVA satu arah secara interaktif.", 
+                  style = "font-size: 16px; color: #555; margin-top: 10px;")
+              )
+  ),
       tabItem("input",
               fluidRow(
                 box(title = "Upload dan Pilih Data", width = 4, fileInput("file1", "Upload CSV"),
