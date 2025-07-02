@@ -8,6 +8,7 @@ library(shinyWidgets)
 
 ui <- dashboardPage(
   skin = "blue",
+  
   dashboardHeader(
     title = span(""),
     
@@ -16,11 +17,13 @@ ui <- dashboardPage(
       style = "padding: 8px 15px 0 0; margin-left: auto;",
       tags$div(
         style = "display: flex; align-items: center; gap: 10px; color: white;",
-  
-        tags$span("Aplikasi ANOVA", style = "font-weight: bold; font-size: 18px;")
+        
+        # Judul dan Logo saja, TANPA switchInput
+        tags$span("AnovaLab", style = "font-weight: bold; font-size: 18px;")
       )
     )
   ),
+  
   dashboardSidebar(
     sidebarMenu(id = "tabs",
                 br(), br(),
@@ -36,67 +39,103 @@ ui <- dashboardPage(
                 menuItem("Home", tabName = "home", icon = icon("home")),
                 menuItem("Input Data", tabName = "input", icon = icon("upload")),
                 menuItem("Uji Kenormalan", tabName = "normal", icon = icon("chart-line")),
-                menuItem("Uji Varians", tabName = "varians", icon = icon("balance-scale")),
+                menuItem("Uji Homogenitas", tabName = "varians", icon = icon("balance-scale")),
                 menuItem("ANOVA", tabName = "anova", icon = icon("project-diagram")),
                 menuItem("Tukey", tabName = "tukey", icon = icon("list"))
     )
   ),
- dashboardBody(
+  
+  dashboardBody(
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "dark-theme.css"),
       
       tags$style(HTML("
-      body, .content-wrapper, .right-side {
-          background-image: url('motif.jpg');
-          background-size: cover;
-          background-repeat: no-repeat;
-          background-attachment: fixed;
-          background-position: top center;
-        }
-
-        .skin-blue .main-header, .skin-blue .main-sidebar {
-          background-color: rgba(255, 255, 255, 0.85) !important;
-        }
-
-        .box {
-          background-color: rgba(255, 255, 255, 0.85) !important;
-        }
-
-      tab-home .content {
-          background-color: transparent !important;
-        }
-
-        body:not(.dark-mode) .skin-blue .main-sidebar .sidebar a {
-          color: #222 !important;
-        }
-
-        body:not(.dark-mode) .skin-blue .main-sidebar .sidebar-menu > li > a {
-          color: #222 !important;
-          font-weight: 500;
-        }
-
-        .skin-blue .main-sidebar .sidebar-menu > li.active > a {
-          background-color: #007bff !important;
-          color: white !important;
-        }
-      ")),
+  /* === KONTEN UTAMA === */
+  /* Background konten utama (selalu pakai motif.jpg, baik light/dark) */
+  .content-wrapper, .right-side {
+    background-image: url('motif.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: top center;
+  }
+  /* Kotak box putih di atas motif */
+  .box {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+  }
+  /* Tab home transparan */
+  #tab-home .content {
+    background-color: transparent !important;
+  }
+  /* === SIDEBAR === */
+  /* Sidebar selalu gelap, teks putih */
+  .skin-blue .main-sidebar {
+    background-color: #1e2b38 !important;
+    color: white !important;
+  }
+  .skin-blue .main-sidebar .sidebar a {
+    color: white !important;
+  }
+  .skin-blue .main-sidebar .sidebar-menu > li > a {
+    color: white !important;
+    font-weight: 500;
+  }
+  .skin-blue .main-sidebar .sidebar-menu > li.active > a {
+    background-color: #007bff !important;
+    color: white !important;
+  }
+  /* Radio button tetap terbaca di sidebar */
+  .main-sidebar .radio label {
+    color: white !important;
+  }
+  /* Judul dan teks di sidebar */
+  .main-sidebar h4, .main-sidebar h3, .main-sidebar h2, .main-sidebar h1,
+  .main-sidebar p {
+    color: white !important;
+  }
+    /* Override warna teks di tab home */
+  #home {
+    color: black !important;
+  }
+")),
+      
       tags$script(HTML("
-        Shiny.addCustomMessageHandler('toggleDark', function(message) {
-          if (message) {
-            document.body.classList.add('dark-mode');
-          } else {
-            document.body.classList.remove('dark-mode');
-          }
-        });
-      "))
-      ),         
-   
+      Shiny.addCustomMessageHandler('toggleDark', function(message) {
+        if (message) {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+      });
+    "))
+    ),
+    
     tabItems(
-      br(), hr(), br(),
+      tabItem("home",
+              withMathJax(),
+              div(
+                style = "padding: 30px; font-family: 'Segoe UI', sans-serif;",
+                
+                # Header dan Gambar Depan
+                div(
+                  style = "text-align: center;",
+                  img(src = "stat.jpg", width = "60%", 
+                      style = "border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 20px;"),
+                  h2("SELAMAT DATANG DI AnovaLab!", 
+                     style = "font-weight: bold; color: #2c3e50;"),
+                  p("AnovaLab membantu Anda melakukan analisis ANOVA satu arah secara interaktif dan menyenangkan.", 
+                    style = "font-size: 16px; color: #555; margin-top: 10px; max-width: 700px; margin-left: auto; margin-right: auto;")
+                ),
+                
+                br(), hr(), br(),
+                
+                # Apa itu ANOVA
                 h3("📌 Apa itu ANOVA Satu Arah?"),
                 p("ANOVA satu arah (Analysis of Variance) adalah metode statistik untuk menguji apakah terdapat perbedaan yang signifikan antara rata-rata tiga kelompok atau lebih. ANOVA memungkinkan kita menghindari pengujian berulang menggunakan uji t dan mengontrol kesalahan tipe I."),
+                
                 br(),
                 
+                # Rumus ANOVA
                 h3("📈 Uji ANOVA Satu Arah (One-Way ANOVA)"),
                 p("Digunakan untuk mengecek apakah terdapat perbedaan rata-rata antara tiga kelompok atau lebih."),
                 h4("📊 Tabel ANOVA"),
@@ -144,24 +183,24 @@ ui <- dashboardPage(
                   tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Rata-rata kelompok sama."),
                   tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Terdapat perbedaan signifikan antar kelompok.")
                 ),
-                tags$p(strong("✅ Interpretasi:")),
-                tags$ul(
-                  tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Rata-rata kelompok sama."),
-                  tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Terdapat perbedaan signifikan antar kelompok.")
-                ),
+                
                 br(), hr(), br(),
                 
+                # Mengapa ANOVA
                 h3("🤔 Mengapa Menggunakan ANOVA?"),
                 tags$ul(
                   tags$li("✔ Menghindari uji t berulang-ulang antar pasangan grup."),
                   tags$li("✔ Mengontrol kesalahan tipe I yang meningkat saat melakukan banyak pengujian."),
                   tags$li("✔ Menyediakan analisis menyeluruh terhadap data multikelompok.")
                 ),
+                
                 br(),
                 
+                # Asumsi Dasar ANOVA
                 h3("⚠ Asumsi Dasar ANOVA"),
                 p("Sebelum melakukan uji ANOVA, ada dua asumsi penting yang perlu diuji terlebih dahulu, yaitu kenormalan dan homogenitas varians."),
                 
+                # Shapiro-Wilk Test
                 h4("1️⃣ Uji Kenormalan (Shapiro-Wilk)"),
                 p("Digunakan untuk mengecek apakah data berdistribusi normal."),
                 div(style = "text-align: center;",
@@ -178,8 +217,10 @@ ui <- dashboardPage(
                   tags$li("Gagal Tolak \\(H_0\\): \\(p > 0.05\\) → Data berdistribusi normal."),
                   tags$li("Tolak \\(H_0\\): \\(p \\leq 0.05\\) → Data tidak berdistribusi normal.")
                 ),
+                
                 br(),
                 
+                # Levene's Test
                 h4("2️⃣ Uji Homogenitas Varians (Levene's Test)"),
                 p("Digunakan untuk mengecek apakah variansi antar grup adalah homogen."),
                 div(style = "text-align: center;",
@@ -196,8 +237,10 @@ ui <- dashboardPage(
                   tags$li("Gagal Tolak \\(H_0\\): \\(p \\geq 0.05\\) → Varians homogen."),
                   tags$li("Tolak \\(H_0\\): \\(p < 0.05\\) → Varians tidak homogen.")
                 ),
+                
                 br(), hr(), br(),
                 
+                # Tukey
                 h3("🔍 Uji Lanjutan Tukey HSD (Post-hoc)"),
                 p("Jika hasil ANOVA signifikan, maka uji Tukey dilakukan untuk mengetahui pasangan grup mana yang berbeda signifikan."),
                 div(style = "text-align: center;",
@@ -214,6 +257,7 @@ ui <- dashboardPage(
                   tags$li("Tolak \\(H_0\\): \\(p < 0.05\\) → Rata-rata antar kelompok berbeda signifikan.")
                 ),
                 
+                # Cara Menggunakan
                 h3("🛠️ Cara Menggunakan Aplikasi Ini"),
                 tags$ol(
                   tags$li("Buka tab 'Input Data' untuk unggah file CSV/XLSX atau gunakan data contoh."),
@@ -223,20 +267,26 @@ ui <- dashboardPage(
                   tags$li("Masuk ke tab 'ANOVA' untuk melihat hasil pengujian F."),
                   tags$li("Jika signifikan, buka tab 'Tukey' untuk melihat pasangan grup yang berbeda.")
                 ),
+                
                 br(), hr(), br(),
                 
+                # Penutup
                 div(style = "text-align: center; font-size: 14px; color: black;",
                     "Aplikasi ini dikembangkan dengan semangat belajar statistik dan cinta terhadap data. 💙")
               )
       ),
+  
       tabItem("input",
               fluidRow(
-                box(title = "Upload dan Pilih Data", status = "primary", solidHeader = TRUE, width = 4, fileInput("file1", "Upload CSV"),
+                box(title = "Upload dan Pilih Data", status = "primary", solidHeader = TRUE, width = 4,
+                    
+                    # RADIO BUTTON PILIH SUMBER DATA
                     radioButtons("dataSourceType", "Pilih Sumber Data",
                                  choices = c("Upload Data" = "upload",
                                              "Dataset R" = "builtin"),
                                  selected = "upload"),
-                  
+                    
+                    # KONDISI UPLOAD
                     conditionalPanel(
                       condition = "input.dataSourceType == 'upload'",
                       fileInput("file1", "Upload File (CSV/XLSX/XLS/TSV)"),
@@ -244,6 +294,7 @@ ui <- dashboardPage(
                                    choices = c("koma ," = ",", "titik koma ;" = ";", "tab \\t" = "\t"))
                     ),
                     
+                    # KONDISI DATA BAWAAN
                     conditionalPanel(
                       condition = "input.dataSourceType == 'builtin'",
                       selectInput("dataSource", "Pilih Dataset",
@@ -261,10 +312,11 @@ ui <- dashboardPage(
                 )
               )
       ),
+      
       tabItem("normal",
               uiOutput("statusBox"),
               fluidRow(
-                box(title = "Hipotesis Uji Kenormalan", status = "primary", solidHeader = TRUE width = 6, 
+                box(title = "Hipotesis Uji Kenormalan", status = "primary", solidHeader = TRUE, width = 6, 
                 withMathJax("$$
                 \\begin{aligned}
                 H_0 &: X \\sim \\mathcal{N}(\\mu, \\sigma^2) \\\\
@@ -274,7 +326,7 @@ ui <- dashboardPage(
                 box(title = "Taraf Signifikansi", status = "primary", solidHeader = TRUE, width = 6, textOutput("tarafNormal"))
               ),
               fluidRow(
-               box(title = "Hasil", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("hasilNormal")),
+                box(title = "Hasil", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("hasilNormal")),
                 box(title = "Keputusan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("keputusanNormal")),
                 box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanNormal")),
                 box(title = "Histogram", status = "primary", solidHeader = TRUE, width = 12, plotOutput("plotNormal", height = "800px")),
@@ -283,6 +335,7 @@ ui <- dashboardPage(
               ),
               actionButton("toVarians", "Lanjut ke Uji Varians")
       ),
+      
       tabItem("varians",
               uiOutput("statusBox"),
               fluidRow(
@@ -300,6 +353,7 @@ ui <- dashboardPage(
               ),
               actionButton("toAnova", "Lanjut ke Uji ANOVA")
       ),
+      
       tabItem("anova",
               uiOutput("statusBox"),
               fluidRow(
@@ -316,11 +370,9 @@ ui <- dashboardPage(
                 box(title = "Kesimpulan", status = "primary", solidHeader = TRUE, width = 12, verbatimTextOutput("kesimpulanAnova")),
                 box(title = "Boxplot Antar Kelompok", status = "primary", solidHeader = TRUE, width = 12, plotOutput("boxplotVarians"))
               ),
-              br(),
-                downloadButton("downloadAnova", "Unduh Hasil ANOVA")
-              ), 
               conditionalPanel("output.anovaSig == true", actionButton("toTukey", "Lanjut ke Uji Tukey"))
       ),
+      
       tabItem("tukey",
               uiOutput("statusBox"),
               fluidRow(
@@ -345,12 +397,13 @@ ui <- dashboardPage(
                       div(style = "display: inline-block;",
                           actionButton("uji_data_lain", "Ayo Uji Data Lain", class = "btn btn-primary",style = "color: white; font-weight: bold;")
                       )
-            )
-          )
-        )
+                  )
+              )
       )
-   )
+    )
+  )
 )
+
 server <- function(input, output, session) {
   dataInput <- reactiveVal()
   hasilNormal <- reactiveVal()
@@ -359,7 +412,7 @@ server <- function(input, output, session) {
   hasilTukey <- reactiveVal()
   selectedNumericVar <- reactiveVal()
   selectedGroupVar <- reactiveVal()
-  
+
   observeEvent(input$file1, {
     req(input$dataSourceType == "upload", input$file1, input$sep)
     ext <- tools::file_ext(input$file1$name)
@@ -401,7 +454,7 @@ server <- function(input, output, session) {
     selectInput("groupVar", "Variabel Grup", names(dataInput()))
   })
   
-    observe({
+  observe({
     req(input$dark_mode)
     session$sendCustomMessage(
       type = "toggleDark",
@@ -474,7 +527,8 @@ server <- function(input, output, session) {
         y = "Frekuensi",
         x = selectedNumericVar()
       )
-  
+    
+    # Gabungkan keduanya
     gridExtra::grid.arrange(p1, p2, ncol = 1)
   })
   
@@ -504,7 +558,7 @@ server <- function(input, output, session) {
       cat("\n")
     }
   })
-  
+
   observeEvent(input$toVarians, { updateTabItems(session, "tabs", "varians") })
   
   output$tarafVarians <- renderText({ paste("\u03B1 =", input$alpha) })
@@ -536,7 +590,7 @@ server <- function(input, output, session) {
       cat("Kesimpulan: Varians antar kelompok homogen.")
     }
   })
-  
+
   observeEvent(input$toAnova, { updateTabItems(session, "tabs", "anova") })
   
   output$tarafAnova <- renderText({ paste("\u03B1 =", input$alpha) })
@@ -549,15 +603,7 @@ server <- function(input, output, session) {
     hasilAnova(hasil)  # simpan ke reactiveVal
     print(hasil)
   })
-output$downloadAnova <- downloadHandler(
-    filename = function() {
-      "hasil_anova.txt"
-    },
-    content = function(file) {
-      req(hasilAnova())
-      writeLines(capture.output(hasilAnova()), file)
-    }
-  ) 
+  
   output$keputusanAnova <- renderPrint({
     req(hasilAnova())
     pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
@@ -655,14 +701,14 @@ output$downloadAnova <- downloadHandler(
       cat("Kesimpulan: Tidak terdapat perbedaan signifikan antara pasangan kelompok manapun.")
     }
   })
-  
+
   output$plotTukey <- renderPlot({
     req(dataInput(), selectedNumericVar(), selectedGroupVar())
     df <- dataInput()
     model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
     plot(TukeyHSD(model))
   })
-
+  
   observeEvent(input$back_to_home, {
     updateTabItems(session, "tabs", selected = "home")
   })
@@ -670,7 +716,7 @@ output$downloadAnova <- downloadHandler(
   observeEvent(input$uji_data_lain, {
     updateTabItems(session, "tabs", selected = "input")  
   })
-            
+  
   output$statusBox <- renderUI({
     if (is.null(hasilNormal())) return()
     normColor <- if (all(sapply(hasilNormal(), function(x) x$p.value > input$alpha))) "green" else "red"
@@ -683,7 +729,7 @@ output$downloadAnova <- downloadHandler(
     aovPval <- tryCatch({
       hasilAnova()[[1]][["Pr(>F)"]][1]
     }, error = function(e) NA)
-    aovColor <- if (!is.na(aovPval) && aovPval <= input$alpha) "green" else "green"
+    aovColor <- if (!is.na(aovPval) && aovPval <= input$alpha) "green" else "red"
     
     tagList(
       tags$style(HTML("
@@ -708,4 +754,5 @@ output$downloadAnova <- downloadHandler(
     )
   })
 }
+
 shinyApp(ui, server)
