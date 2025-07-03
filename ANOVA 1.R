@@ -122,7 +122,7 @@ ui <- dashboardPage(
                   h2("SELAMAT DATANG DI AnovaLab!", 
                      style = "font-weight: bold; color: #2c3e50;"),
                   p("AnovaLab membantu Anda melakukan analisis ANOVA satu arah secara interaktif dan menyenangkan.", 
-                    style = "font-size: 18px; color: #2c3e50; margin-top: 10px; max-width: 700px; margin-left: auto; margin-right: auto;")
+                    style = "font-size: 16px; color: #555; margin-top: 10px; max-width: 700px; margin-left: auto; margin-right: auto;")
                 ),
                 
                 br(), hr(), br(),
@@ -182,7 +182,7 @@ ui <- dashboardPage(
                 
                 br(), hr(), br(),
                 
-                h3("📌 Mengapa Menggunakan ANOVA?"),
+                h3("🤔 Mengapa Menggunakan ANOVA?"),
                 tags$ul(
                   tags$li("✔ Menghindari uji t berulang-ulang antar pasangan grup."),
                   tags$li("✔ Mengontrol kesalahan tipe I yang meningkat saat melakukan banyak pengujian."),
@@ -260,7 +260,7 @@ ui <- dashboardPage(
                 
                 br(), hr(), br(),
                 
-                div(style = "text-align: center; font-size: 15px; font-weight: bold; color: #2c3e50;",
+                div(style = "text-align: center; font-size: 14px; color: black;",
                     "Aplikasi ini dikembangkan dengan semangat belajar statistik dan cinta terhadap data. 💙")
               )
       ),
@@ -631,7 +631,7 @@ server <- function(input, output, session) {
     } else if (pval < input$alpha) {
       cat("  Tolak H₀ karena p-value =", signif(pval, 5), "< α =", input$alpha, "\n")
     } else {
-      cat("  Terima H₀ karena p-value =", signif(pval, 5), "≥ α =", input$alpha, "\n")
+      cat("  Gagal menolak H₀ karena p-value =", signif(pval, 5), "≥ α =", input$alpha, "\n")
     }
   })
   
@@ -643,9 +643,9 @@ server <- function(input, output, session) {
     if (is.na(pval)) {
       cat("  Tidak dapat disimpulkan karena p-value tidak tersedia (NA).")
     } else if (pval < input$alpha) {
-      cat("  Rata-rata antar kelompok berbeda signifikan.")
+      cat("  Rata-rata antar kelompok berbeda secara signifikan.")
     } else {
-      cat("  Rata-rata antar kelompok tidak berbeda signifikan.")
+      cat("  Rata-rata antar kelompok tidak berbeda secara signifikan.")
     }
   })
   
