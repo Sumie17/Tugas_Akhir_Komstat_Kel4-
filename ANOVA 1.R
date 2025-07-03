@@ -568,8 +568,6 @@ server <- function(input, output, session) {
   output$keputusanVarians <- renderPrint({
     req(hasilVarians())
     pval <- as.numeric(hasilVarians()[["Pr(>F)"]][1])
-    
-    cat("Keputusan:\n")
     if (pval < input$alpha) {
       cat("  Tolak H₀ karena p-value =", signif(pval, 5), "< α =", input$alpha, "\n")
     } else {
@@ -581,7 +579,6 @@ server <- function(input, output, session) {
     req(hasilVarians())
     pval <- as.numeric(hasilVarians()[["Pr(>F)"]][1])
     
-    cat("Kesimpulan:\n")
     if (pval < input$alpha) {
       cat("  Varians antar kelompok tidak homogen.")
     } else {
@@ -618,8 +615,6 @@ server <- function(input, output, session) {
   output$keputusanAnova <- renderPrint({
     req(hasilAnova())
     pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
-    
-    cat("Keputusan:\n")
     if (is.na(pval)) {
       cat("  Tidak dapat dihitung karena p-value bernilai NA.\n")
     } else if (pval < input$alpha) {
@@ -632,8 +627,6 @@ server <- function(input, output, session) {
   output$kesimpulanAnova <- renderPrint({
     req(hasilAnova())
     pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
-    
-    cat("Kesimpulan:\n")
     if (is.na(pval)) {
       cat("  Tidak dapat disimpulkan karena p-value tidak tersedia (NA).")
     } else if (pval < input$alpha) {
@@ -735,7 +728,6 @@ server <- function(input, output, session) {
     req(hasilTukey())
     tukey_df <- as.data.frame(hasilTukey())
     
-    cat("Keputusan:\n")
     for (i in seq_len(nrow(tukey_df))) {
       pair <- rownames(tukey_df)[i]
       pval <- tukey_df[i, "p adj"]
@@ -758,11 +750,10 @@ server <- function(input, output, session) {
     tukey_df <- as.data.frame(hasilTukey())
     pvals <- tukey_df[["p adj"]]
     
-    cat("Kesimpulan:\n")
     if (!is.null(pvals) && any(!is.na(pvals) & pvals < input$alpha)) {
       signif_rows <- rownames(tukey_df)[!is.na(pvals) & pvals < input$alpha]
       
-      cat("  → Terdapat perbedaan signifikan antara pasangan kelompok berikut:\n")
+      cat("Terdapat perbedaan signifikan antara pasangan kelompok berikut:\n")
       for (pair in signif_rows) {
         cat("   -", pair, "\n")
       }
