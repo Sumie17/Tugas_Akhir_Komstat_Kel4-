@@ -474,7 +474,382 @@ server <- function(input, output, session) {
     req(selectedNumericVar(), selectedGroupVar())
     paste("\u03B1 =", input$alpha)
   })
+
+  #SINI
+  output$hasilNormal <- renderPrint({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    
+    result <- lapply(split(df[[selectedNumericVar()]], df[[selectedGroupVar()]]), shapiro.test)
+    hasilNormal(result)
+    
+    for (group in names(result)) {
+      cat("Kelompok", group,
+          ": Statistik =", signif(result[[group]]$statistic, 5),
+          ", p-value =", signif(result[[group]]$p.value, 5), "\n")
+    }
+  })
   
+  output$keputusanNormal <- renderPrint({
+    req(hasilNormal())
+    
+    for (group in names(hasilNormal())) {
+      pval <- hasilNormal()[[group]]$p.value
+      
+      cat("Kelompok", group, ":\n")
+      cat("  Keputusan: ",
+          ifelse(pval < input$alpha,
+                 paste("Tolak H₀ karena p-value =", signif(pval, 5), "< α =", input$alpha),
+                 paste("Terima H₀ karena p-value =", signif(pval, 5), "≥ α =", input$alpha)),
+          "\n")
+      cat("  Kesimpulan: ",
+          ifelse(pval < input$alpha,
+                 "Data tidak berdistribusi normal.",
+                 "Data berdistribusi normal."),
+          "\n\n")
+    }
+  })
+  
+  output$kesimpulanNormal <- renderPrint({
+    req(hasilNormal())
+    
+    if (all(sapply(hasilNormal(), function(x) x$p.value > input$alpha))) {
+      cat("Kesimpulan Umum: Data berdistribusi normal.")
+    } else {
+      cat("Kesimpulan Umum: Data tidak berdistribusi normal.")
+    }
+  })
+  
+  output$plotNormal <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    
+    p1 <- ggplot(df, aes_string(x = selectedNumericVar())) +
+      geom_histogram(color = "black", fill = "skyblue", bins = 20) +
+      facet_wrap(as.formula(paste("~", selectedGroupVar())), ncol = 2, scales = "free_y") +
+      theme_minimal() +
+      labs(
+        title = "Histogram per Kelompok",
+        y = "Frekuensi",
+        x = selectedNumericVar()
+      )
+    
+    p2 <- ggplot(df, aes_string(x = selectedNumericVar())) +
+      geom_histogram(color = "black", fill = "salmon", bins = 20) +
+      theme_minimal() +
+      labs(
+        title = "Histogram Seluruh Data",
+        y = "Frekuensi",
+        x = selectedNumericVar()
+      )
+    
+    gridExtra::grid.arrange(p1, p2, ncol = 1)
+  })
+  
+  output$qqNormal <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    
+    ggplot(df, aes_string(sample = selectedNumericVar())) +
+      stat_qq() + stat_qq_line() +
+      facet_wrap(as.formula(paste("~", selectedGroupVar()))) +
+      theme_minimal() +
+      labs(title = "Q-Q Plot per Kelompok")
+  })
+  
+  output$interpretasiNormal <- renderPrint({
+    req(hasilNormal())
+    for (group in names(hasilNormal())) {
+      pval <- hasilNormal()[[group]]$p.value
+      cat("Kelompok", group, ":\n")
+      if (pval > input$alpha) {
+        cat("- P-value >", input$alpha, ": Data berdistribusi normal\n")
+        cat("- Histogram dan Q-Q Plot menunjukkan simetris & mengikuti garis diagonal\n")
+      } else {
+        cat("- P-value <", input$alpha, ": Data tidak berdistribusi normal\n")
+        cat("- Histogram tidak simetris atau Q-Q Plot menyimpang dari garis normal\n")
+      }
+      cat("\n")
+    }
+  })
+  
+  observeEvent(input$toVarians, { updateTabItems(session, "tabs", "varians") })
+  
+  output$tarafVarians <- renderText({ paste("\u03B1 =", input$alpha) })
+  
+  output$variansResult <- renderPrint({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    
+    result <- leveneTest(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
+    hasilVarians(result)
+    print(result)
+  })
+  
+  output$keputusanVarians <- renderPrint({
+    req(hasilVarians())
+    pval <- as.numeric(hasilVarians()[["Pr(>F)"]][1])
+    
+    cat("Keputusan:\n")
+    if (pval < input$alpha) {
+      cat("  Tolak H₀ karena p-value =", signif(pval, 5), "< α =", input$alpha, "\n")
+    } else {
+      cat("  Gagal menolak H₀ karena p-value =", signif(pval, 5), "≥ α =", input$alpha, "\n")
+    }
+  })
+  
+  output$kesimpulanVarians <- renderPrint({
+    req(hasilVarians())
+    pval <- as.numeric(hasilVarians()[["Pr(>F)"]][1])
+    
+    cat("Kesimpulan:\n")
+    if (pval < input$alpha) {
+      cat("  Varians antar kelompok tidak homogen.")
+    } else {
+      cat("  Varians antar kelompok homogen.")
+    }
+  })
+  
+  isValidGroup <- function(df, groupVar) {
+    col <- df[[groupVar]]
+    !is.null(col) &&
+      (is.factor(col) || is.character(col) || is.numeric(col)) &&
+      length(unique(na.omit(col))) >= 2
+  }
+  
+  observeEvent(input$toAnova, { updateTabItems(session, "tabs", "anova") })
+  
+  output$tarafAnova <- renderText({ paste("\u03B1 =", input$alpha) })
+  
+  output$anovaResult <- renderPrint({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- na.omit(dataInput())
+    
+    if (!isValidGroup(df, selectedGroupVar())) {
+      cat("Error: Variabel grup harus memiliki minimal 2 kategori.\n")
+      return()
+    }
+    
+    model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
+    hasil <- summary(model)
+    hasilAnova(hasil)
+    print(hasil)
+  })
+  
+  output$keputusanAnova <- renderPrint({
+    req(hasilAnova())
+    pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
+    
+    cat("Keputusan:\n")
+    if (is.na(pval)) {
+      cat("  Tidak dapat dihitung karena p-value bernilai NA.\n")
+    } else if (pval < input$alpha) {
+      cat("  Tolak H₀ karena p-value =", signif(pval, 5), "< α =", input$alpha, "\n")
+    } else {
+      cat("  Gagal menolak H₀ karena p-value =", signif(pval, 5), "≥ α =", input$alpha, "\n")
+    }
+  })
+  
+  output$kesimpulanAnova <- renderPrint({
+    req(hasilAnova())
+    pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
+    
+    cat("Kesimpulan:\n")
+    if (is.na(pval)) {
+      cat("  Tidak dapat disimpulkan karena p-value tidak tersedia (NA).")
+    } else if (pval < input$alpha) {
+      cat("  Terdapat perbedaan rata-rata yang signifikan antar kelompok.")
+    } else {
+      cat("  Tidak terdapat perbedaan rata-rata yang signifikan antar kelompok.")
+    }
+  })
+  
+  output$downloadAnova <- downloadHandler(
+    filename = function() {
+      paste0("Hasil_Uji_ANOVA_", Sys.Date(), ".txt")
+    },
+    content = function(file) {
+      req(hasilAnova())
+      hasil <- capture.output({
+        cat("Hasil Uji ANOVA:\n")
+        print(hasilAnova())
+        
+        cat("\nKeputusan:\n")
+        pval <- hasilAnova()[[1]]$"Pr(>F)"[1]
+        if (is.na(pval)) {
+          cat("  Tidak dapat dihitung karena p-value bernilai NA.\n")
+        } else if (pval < input$alpha) {
+          cat("  Tolak H₀ karena p-value =", signif(pval, 5), "< α =", input$alpha, "\n")
+        } else {
+          cat("  Gagal menolak H₀ karena p-value =", signif(pval, 5), "≥ α =", input$alpha, "\n")
+        }
+        
+        cat("\nKesimpulan:\n")
+        if (is.na(pval)) {
+          cat("  Tidak dapat disimpulkan karena p-value tidak tersedia (NA).\n")
+        } else if (pval < input$alpha) {
+          cat("  Terdapat perbedaan rata-rata yang signifikan antar kelompok.\n")
+        } else {
+          cat("  Tidak terdapat perbedaan rata-rata yang signifikan antar kelompok.\n")
+        }
+      })
+      writeLines(hasil, con = file)
+    }
+  )
+  
+  output$anovaSig <- reactive({
+    res <- hasilAnova()
+    if (!is.null(res)) return(res[[1]]$"Pr(>F)"[1] < input$alpha)
+    FALSE
+  })
+  
+  outputOptions(output, "anovaSig", suspendWhenHidden = FALSE)
+  
+  output$boxplotVarians <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    ggplot(df, aes_string(x = selectedGroupVar(), y = selectedNumericVar())) +
+      geom_boxplot(aes(fill = .data[[selectedGroupVar()]]), color = "black") +
+      theme_minimal() +
+      labs(
+        title = "",
+        y = selectedNumericVar(),
+        x = selectedGroupVar()
+      )
+  })
+  
+  observeEvent(input$toTukey, { updateTabItems(session, "tabs", "tukey") })
+  output$tarafTukey <- renderText({ paste("\u03B1 =", input$alpha) })
+  
+  output$tukeyResult <- renderPrint({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    
+    if (!isValidGroup(df, selectedGroupVar())) {
+      cat("Error: Variabel grup hanya memiliki 1 kategori. Tidak bisa melakukan uji Tukey.\n")
+      return()
+    }
+    
+    model <- tryCatch({
+      aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
+    }, error = function(e) {
+      cat("Error saat membangun model ANOVA:", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (is.null(model)) return()
+    
+    tukey <- tryCatch({
+      TukeyHSD(model)
+    }, error = function(e) {
+      cat("Error saat melakukan uji Tukey:", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (!is.null(tukey)) {
+      hasilTukey(tukey[[selectedGroupVar()]])
+      print(tukey[[selectedGroupVar()]])
+    }
+  })
+  
+  output$keputusanTukey <- renderPrint({
+    req(hasilTukey())
+    tukey_df <- as.data.frame(hasilTukey())
+    
+    cat("Keputusan:\n")
+    for (i in seq_len(nrow(tukey_df))) {
+      pair <- rownames(tukey_df)[i]
+      pval <- tukey_df[i, "p adj"]
+      
+      cat("• Pasangan", pair, ":\n")
+      if (is.na(pval)) {
+        cat("  - p-value tidak tersedia → Tidak dapat disimpulkan.\n\n")
+      } else if (pval < input$alpha) {
+        cat("  - p-value =", signif(pval, 5), "< α =", input$alpha, 
+            "→ Tolak H₀ → Ada perbedaan signifikan\n\n")
+      } else {
+        cat("  - p-value =", signif(pval, 5), "≥ α =", input$alpha, 
+            "→ Terima H₀ → Tidak ada perbedaan signifikan\n\n")
+      }
+    }
+  })
+  
+  output$kesimpulanTukey <- renderPrint({
+    req(hasilTukey())
+    tukey_df <- as.data.frame(hasilTukey())
+    pvals <- tukey_df[["p adj"]]
+    
+    cat("Kesimpulan:\n")
+    if (!is.null(pvals) && any(!is.na(pvals) & pvals < input$alpha)) {
+      signif_rows <- rownames(tukey_df)[!is.na(pvals) & pvals < input$alpha]
+      
+      cat("  → Terdapat perbedaan signifikan antara pasangan kelompok berikut:\n")
+      for (pair in signif_rows) {
+        cat("   -", pair, "\n")
+      }
+    } else {
+      cat("  → Tidak terdapat perbedaan signifikan antara pasangan kelompok manapun.")
+    }
+  })
+  
+  output$plotTukey <- renderPlot({
+    req(dataInput(), selectedNumericVar(), selectedGroupVar())
+    df <- dataInput()
+    model <- aov(as.formula(paste(selectedNumericVar(), "~", selectedGroupVar())), data = df)
+    plot(TukeyHSD(model))
+  })
+  
+  observeEvent(input$back_to_home, {
+    updateTabItems(session, "tabs", selected = "home")
+  })
+  
+  observeEvent(input$uji_data_lain, {
+    updateTabItems(session, "tabs", selected = "input")  
+  })
+  
+  output$statusBox <- renderUI({
+    if (is.null(hasilNormal())) return()
+    
+    normColor <- tryCatch({
+      pvals <- sapply(hasilNormal(), function(x) x$p.value)
+      if (all(!is.na(pvals)) && all(pvals > input$alpha)) "green" else "red"
+    }, error = function(e) "red")
+    
+    varPval <- tryCatch({
+      as.numeric(hasilVarians()[["Pr(>F)"]][1])
+    }, error = function(e) NA)
+    varColor <- if (!is.null(varPval) && !is.na(varPval) && varPval > input$alpha) "green" else "red"
+    
+    aovPval <- tryCatch({
+      hasilAnova()[[1]][["Pr(>F)"]][1]
+    }, error = function(e) NA)
+    aovColor <- if (!is.null(aovPval) && !is.na(aovPval) && aovPval <= input$alpha) "green" else "red"
+    
+    tagList(
+      tags$style(HTML("
+      .status-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+      .status-box {
+        flex: 1;
+        padding: 15px;
+        margin-right: 10px;
+        text-align: center;
+        font-weight: bold;
+        color: white;
+        border-radius: 10px;
+      }
+      .green { background-color: #28a745; }
+      .red { background-color: #dc3545; }
+    ")),
+      div(class = "status-row",
+          div(class = paste("status-box", normColor), "Normalitas: ", ifelse(normColor == "green", "Normal", "Tidak Normal")),
+          div(class = paste("status-box", varColor), "Homogenitas: ", ifelse(varColor == "green", "Homogen", "Tidak Homogen")),
+          div(class = paste("status-box", aovColor), "ANOVA: ", ifelse(aovColor == "green", "Rata-Rata Kelompok Berbeda", "Rata-Rata Kelompok Tidak Berbeda"))
+      )
+    )
+  })
+}
+shinyApp(ui, server)
+
   output$hasilNormal <- renderPrint({
     req(dataInput(), selectedNumericVar(), selectedGroupVar())
     df <- dataInput()
