@@ -65,3 +65,11 @@ Aplikasi ini dibangun menggunakan:
 ## 🎉 Selamat Mencoba!
 
 Jika kamu menemukan bug atau ingin mengembangkan lebih lanjut, silakan ajukan **issue** atau buat **pull request** ke repositori ini.
+
+## 👥 Anggota Kelompok
+
+- **Shafa Fatimah Azzahra** – 1314623062
+- **Salma Hasanah** – 1314623039  
+- **Fransisca Esya T** – 1314623016  
+- **Az-zahraa Kanaia** – 1314623071
+- **Shofi Dwi Atsari** – 1314623013  
