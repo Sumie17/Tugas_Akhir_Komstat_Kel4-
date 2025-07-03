@@ -187,7 +187,7 @@ ui <- dashboardPage(
                 br(), hr(), br(),
                 
                 # Mengapa ANOVA
-                h3("🤔 Mengapa Menggunakan ANOVA?"),
+                h3("📌 Mengapa Menggunakan ANOVA?"),
                 tags$ul(
                   tags$li("✔ Menghindari uji t berulang-ulang antar pasangan grup."),
                   tags$li("✔ Mengontrol kesalahan tipe I yang meningkat saat melakukan banyak pengujian."),
@@ -271,7 +271,7 @@ ui <- dashboardPage(
                 br(), hr(), br(),
                 
                 # Penutup
-                div(style = "text-align: center; font-size: 14px; color: black;",
+                div(style = "text-align: center; font-size: 15px; font-weight: bold; color: #2c3e50;",
                     "Aplikasi ini dikembangkan dengan semangat belajar statistik dan cinta terhadap data. 💙")
               )
       ),
@@ -563,7 +563,6 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$toVarians, { updateTabItems(session, "tabs", "varians") })
-  
   output$tarafVarians <- renderText({ paste("\u03B1 =", input$alpha) })
   
   output$variansResult <- renderPrint({
@@ -595,7 +594,6 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$toAnova, { updateTabItems(session, "tabs", "anova") })
-  
   output$tarafAnova <- renderText({ paste("\u03B1 =", input$alpha) })
   
   output$anovaResult <- renderPrint({
