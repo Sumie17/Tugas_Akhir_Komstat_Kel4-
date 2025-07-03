@@ -124,7 +124,7 @@ ui <- dashboardPage(
                   h2("SELAMAT DATANG DI AnovaLab!", 
                      style = "font-weight: bold; color: #2c3e50;"),
                   p("AnovaLab membantu Anda melakukan analisis ANOVA satu arah secara interaktif dan menyenangkan.", 
-                    style = "font-size: 16px; color: #555; margin-top: 10px; max-width: 700px; margin-left: auto; margin-right: auto;")
+                    style = "font-size: 18px; color: #2c3e50; margin-top: 10px; max-width: 700px; margin-left: auto; margin-right: auto;")
                 ),
                 
                 br(), hr(), br(),
@@ -578,9 +578,9 @@ server <- function(input, output, session) {
     req(hasilVarians())
     pval <- as.numeric(hasilVarians()[["Pr(>F)"]][1])
     if (pval < input$alpha) {
-      cat("Keputusan: Tolak H0 karena varians tidak homogen.\n")
+      cat("Keputusan: Tolak H0 karena p-value =", signif(pval, 5), "< α =", input$alpha)
     } else {
-      cat("Keputusan: Terima H0 karena varians homogen.\n")
+      cat("Keputusan: Terima H0 karena p-value =", signif(pval, 5), "≥ α =", input$alpha)
     }
   })
   
@@ -614,9 +614,9 @@ server <- function(input, output, session) {
     if (is.na(pval)) {
       cat("Keputusan: Tidak dapat dihitung karena nilai p-value tidak tersedia (NA).")
     } else if (pval < input$alpha) {
-      cat("Keputusan: Tolak H0 karena terdapat perbedaan rata-rata antar kelompok.")
+   cat("Keputusan: Tolak H0 karena p-value =", signif(pval, 5), "< α =", input$alpha)
     } else {
-      cat("Keputusan: Terima H0 karena tidak terdapat perbedaan rata-rata antar kelompok.")
+      cat("Keputusan: Terima H0 karena p-value =", signif(pval, 5), "≥ α =", input$alpha)
     }
   })
   
@@ -705,7 +705,6 @@ output$downloadAnova <- downloadHandler(
       pval <- tukey_df[i, "p adj"]
       
       cat("Pasangan", pair, ":\n")
-      
       if (is.na(pval)) {
         cat("- p-value tidak tersedia. Tidak dapat diambil keputusan.\n\n")
       } else if (pval < input$alpha) {
@@ -726,7 +725,6 @@ output$downloadAnova <- downloadHandler(
     # Cek apakah ada p-value yang valid dan < alpha
     if (!is.null(pvals) && any(!is.na(pvals) & pvals < input$alpha)) {
       signif_rows <- rownames(tukey_df)[!is.na(pvals) & pvals < input$alpha]
-      
       cat("Kesimpulan: Terdapat perbedaan signifikan antara pasangan kelompok berikut:\n")
       for (pair in signif_rows) {
         cat("-", pair, "\n")
