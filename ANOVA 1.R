@@ -481,17 +481,11 @@ server <- function(input, output, session) {
     for (group in names(hasilNormal())) {
       pval <- hasilNormal()[[group]]$p.value
       
-      cat("Kelompok", group, ":\n")
-      cat("  Keputusan: ",
+      cat("Kelompok", group, ":",
           ifelse(pval < input$alpha,
                  paste("Tolak H₀ karena p-value =", signif(pval, 5), "< α =", input$alpha),
                  paste("Terima H₀ karena p-value =", signif(pval, 5), "≥ α =", input$alpha)),
           "\n")
-      cat("  Kesimpulan: ",
-          ifelse(pval < input$alpha,
-                 "Data tidak berdistribusi normal.",
-                 "Data berdistribusi normal."),
-          "\n\n")
     }
   })
   
